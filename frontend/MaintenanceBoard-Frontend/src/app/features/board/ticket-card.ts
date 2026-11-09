@@ -5,9 +5,9 @@ import { initials, localTicketDate } from '../../core/tickets/ticket-presentatio
 @Component({
   selector: 'app-ticket-card',
   template: `
-    <article class="ticket-card" [attr.aria-labelledby]="'ticket-title-' + ticket().ticketId">
+    <article class="ticket-card relative" [attr.aria-labelledby]="'ticket-title-' + ticket().ticketId">
       <p class="ticket-number">#{{ ticket().ticketId }}</p>
-      <h3 [id]="'ticket-title-' + ticket().ticketId"><button class="text-left hover:underline" type="button" (click)="opened.emit(ticket().ticketId)" [attr.aria-label]="'Ver ticket #' + ticket().ticketId + ': ' + ticket().title">{{ ticket().title }}</button></h3>
+      <h3 [id]="'ticket-title-' + ticket().ticketId">{{ ticket().title }}</h3>
       <p class="ticket-description">{{ ticket().description }}</p>
       <span class="status-badge" [attr.data-status]="ticket().status"><span aria-hidden="true">●</span>{{ labels[ticket().status] }}</span>
       <div class="assignee-row">
@@ -19,6 +19,8 @@ import { initials, localTicketDate } from '../../core/tickets/ticket-presentatio
         }
       </div>
       <time [attr.datetime]="ticket().createdAtUtc">{{ localDate(ticket().createdAtUtc) }}</time>
+      <!-- Stretch one native button across the card while preserving its content semantics. -->
+      <button class="absolute inset-0 w-full rounded-xl hover:ring-1 hover:ring-slate-300" type="button" aria-haspopup="dialog" (click)="opened.emit(ticket().ticketId)" [attr.aria-label]="'Ver ticket #' + ticket().ticketId + ': ' + ticket().title"></button>
     </article>
   `,
   styleUrl: './ticket-card.css',

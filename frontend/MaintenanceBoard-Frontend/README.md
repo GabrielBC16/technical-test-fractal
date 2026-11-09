@@ -81,7 +81,7 @@ The desktop shell follows the exported board layout, adapted to three backend gr
 - Assignee options come from board assignments, so Requesters do not call the restricted users endpoint.
 - Real assignee initials, additional assignee counts, and browser-local creation dates are displayed.
 - Loading, empty, no-match, and Spanish error states are included.
-- New-ticket creation opens a desktop side panel; ticket titles open their details and activity history.
+- New-ticket creation opens a desktop side panel; the entire ticket card opens its details and activity history.
 - Date-range filtering, rejected-ticket listing, and responsive behavior remain in later milestones.
 - Demo ticket titles and descriptions remain exactly as returned by the API, including English seed content.
 
@@ -112,7 +112,7 @@ Optional assignment in the reference is intentionally deferred to the separate a
 Input remains available after errors; duplicate submissions and closing during an active create request are prevented.
 After HTTP 201, the returned ticket ID opens its detail and the board is refreshed with local filters cleared.
 
-Ticket titles are keyboard-accessible buttons. The detail panel fetches `GET /api/tickets/{id}`
+Each ticket card has a full-card native button accessible with Tab, Enter, and Space. The detail panel fetches `GET /api/tickets/{id}`
 and displays reporter, status, description, cause, all assignees, justifications, and history.
 History is shown newest first without changing the API response. Event and status labels are in Spanish.
 History remains read-only. The detail now exposes the assignment, transition, and comment actions described below.
