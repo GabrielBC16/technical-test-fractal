@@ -3,11 +3,21 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.14" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+    <!-- Override the vulnerable OpenAPI dependency brought by SwaggerGen. -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MaintenanceBoard.Application/MaintenanceBoard.Application.csproj" />
+    <ProjectReference Include="../MaintenanceBoard.Infrastructure/MaintenanceBoard.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

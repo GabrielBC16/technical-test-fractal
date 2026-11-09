@@ -10,9 +10,13 @@ namespace MaintenanceBoard.Infrastructure;
 
 public static class InfrastructureServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString) =>
+        services.AddInfrastructure(_ => connectionString);
+
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services, Func<IServiceProvider, string> connectionString)
     {
-        services.AddSingleton<ISqlConnectionFactory>(new SqlConnectionFactory(connectionString));
+        services.AddSingleton<ISqlConnectionFactory>(provider => new SqlConnectionFactory(connectionString(provider)));
         services.AddScoped<SqlExecutor>();
         services.AddScoped<ITicketRepository, SqlTicketRepository>();
         services.AddScoped<IUserRepository, SqlUserRepository>();

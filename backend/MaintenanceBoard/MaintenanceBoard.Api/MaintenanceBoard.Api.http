@@ -1,6 +1,34 @@
-@MaintenanceBoard.Api_HostAddress = http://localhost:5213
+@host = <API_BASE_URL>
+@userId = <ACTIVE_USER_ID>
+@ticketId = <TICKET_ID>
 
-GET {{MaintenanceBoard.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Replace placeholders before sending requests.
+POST {{host}}/api/auth/login
+Content-Type: application/json
 
-###
+{
+  "userName": "<USER_NAME>",
+  "password": "<PASSWORD>"
+}
+
+### Main board excludes Rejected.
+GET {{host}}/api/tickets/board
+X-User-Id: {{userId}}
+
+### Create a ticket. Reporter identity comes from the authenticated header.
+POST {{host}}/api/tickets
+Content-Type: application/json
+X-User-Id: {{userId}}
+
+{
+  "title": "ATM unavailable",
+  "description": "The terminal screen is unresponsive."
+}
+
+### Ticket details include assignments and chronological history.
+GET {{host}}/api/tickets/{{ticketId}}
+X-User-Id: {{userId}}
+
+### Active eligible assignees. Operator or Supervisor required.
+GET {{host}}/api/users
+X-User-Id: {{userId}}
