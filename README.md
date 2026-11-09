@@ -16,16 +16,16 @@ The interface is in Spanish and displays **Tablero de tickets de mantenimiento**
 
 ## Architecture
 
-The system consists of an Angular client and a controller-based ASP.NET Core API backed by SQL Server. The backend is a **modular monolith** with `Tickets` and `Access` modules organized as folders within its layers.
+The system consists of an Angular client and a controller-based ASP.NET Core API backed by SQL Server. The backend is a **modular monolith** with `Tickets` and `Access` modules organized as folders within its layers and following the Clean Architecture.
 
-| Part | Technology and responsibility |
-| --- | --- |
-| Frontend | Angular 21, TypeScript, Tailwind CSS 4, standalone components, Signals, reactive forms, and HttpClient/RxJS. |
-| API | .NET 10, thin controllers, header authentication, authorization, Swagger in Development, and global ProblemDetails error handling. |
-| Application | Use cases, repository interfaces, ownership/assignment validation, and application exceptions. |
-| Domain | Entities, enums, and the pure `TicketTransitionPolicy`; no external project dependencies. |
-| Infrastructure | Dapper, Microsoft.Data.SqlClient, stored procedure calls, BCrypt password hashing, and development seeding. |
-| Database | SQL Server with `access` and `tickets` schemas, named constraints, indexes, and transactional stored procedures. |
+| Part           | Technology and responsibility                                                                                                      |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend       | Angular 21, TypeScript, Tailwind CSS 4, standalone components, Signals, reactive forms, and HttpClient/RxJS.                       |
+| API            | .NET 10, thin controllers, header authentication, authorization, Swagger in Development, and global ProblemDetails error handling. |
+| Application    | Use cases, repository interfaces, ownership/assignment validation, and application exceptions.                                     |
+| Domain         | Entities, enums, and the pure `TicketTransitionPolicy`; no external project dependencies.                                          |
+| Infrastructure | Dapper, Microsoft.Data.SqlClient, stored procedure calls, BCrypt password hashing, and development seeding.                        |
+| Database       | SQL Server with `access` and `tickets` schemas, named constraints, indexes, and transactional stored procedures.                   |
 
 Project dependencies are `Api -> Application + Infrastructure`, `Infrastructure -> Application`, and `Application -> Domain`. Repository interfaces live in Application and are implemented in Infrastructure. No EF Core, ASP.NET Core Identity, MediatR, or CQRS framework is used.
 
@@ -66,25 +66,25 @@ Application services validate first. Stored procedures recheck the rules under d
 
 ### Ticket lifecycle
 
-| Current status | Allowed next status | Requirement |
-| --- | --- | --- |
-| `Pending` | `InProgress` | At least one assigned user. |
-| `Pending` | `Rejected` | A nonempty rejection comment. |
-| `InProgress` | `Closed` | A nonempty `Cause` describing the root cause. |
-| `InProgress` | `Rejected` | A nonempty rejection comment. |
-| `Closed` / `Rejected` | None | Terminal statuses. |
+| Current status        | Allowed next status | Requirement                                   |
+| --------------------- | ------------------- | --------------------------------------------- |
+| `Pending`             | `InProgress`        | At least one assigned user.                   |
+| `Pending`             | `Rejected`          | A nonempty rejection comment.                 |
+| `InProgress`          | `Closed`            | A nonempty `Cause` describing the root cause. |
+| `InProgress`          | `Rejected`          | A nonempty rejection comment.                 |
+| `Closed` / `Rejected` | None                | Terminal statuses.                            |
 
 Tickets start in `Pending`. Unknown states, skipped steps, backward transitions, and transitions to the same state are rejected. Rejected tickets are excluded from the main board and remain accessible through the ticket list and details.
 
 ### Roles and assignments
 
-| Action | Requester | Operator / Supervisor |
-| --- | --- | --- |
-| Create tickets | Yes | Yes |
-| View board, list, and details | Yes | Yes |
-| Add comments | Only on tickets they reported | On any ticket |
-| Assign users and change status | No | Yes, on any ticket |
-| List eligible assignees | No | Yes |
+| Action                         | Requester                     | Operator / Supervisor |
+| ------------------------------ | ----------------------------- | --------------------- |
+| Create tickets                 | Yes                           | Yes                   |
+| View board, list, and details  | Yes                           | Yes                   |
+| Add comments                   | Only on tickets they reported | On any ticket         |
+| Assign users and change status | No                            | Yes, on any ticket    |
+| List eligible assignees        | No                            | Yes                   |
 
 - A reporter is not automatically an assignee.
 - Assignments are allowed only in `Pending` or `InProgress`.
@@ -170,7 +170,7 @@ The committed frontend configuration points to the Azure API. To run the complet
 
 ```typescript
 export const environment = {
-  apiBaseUrl: 'http://localhost:5213/api',
+  apiBaseUrl: "http://localhost:5213/api",
 };
 ```
 
@@ -188,13 +188,13 @@ The current backend CORS policy allows any origin for the technical demonstratio
 
 With `DevelopmentSeed=true` in Development, startup creates the following accounts and four sample tickets, one per status. Ticket descriptions, causes, justifications, and comments are in Spanish. Existing users and matching sample tickets are preserved on subsequent starts.
 
-| Name | Username | Demo password | Role |
-| --- | --- | --- | --- |
-| Gabriel Barrantes | `gbarrantes` | `gbarrantes` | Requester |
-| Fernando Cabello | `fcabello` | `fcabello` | Operator |
-| Pedro Ramirez | `pramirez` | `pramirez` | Operator |
-| Juan Carlos Cordova | `jcordova` | `jcordova` | Operator |
-| Mario Huarcaya | `mhuarcaya` | `mhuarcaya` | Supervisor |
+| Name                | Username     | Demo password | Role       |
+| ------------------- | ------------ | ------------- | ---------- |
+| Gabriel Barrantes   | `gbarrantes` | `gbarrantes`  | Requester  |
+| Fernando Cabello    | `fcabello`   | `fcabello`    | Operator   |
+| Pedro Ramirez       | `pramirez`   | `pramirez`    | Operator   |
+| Juan Carlos Cordova | `jcordova`   | `jcordova`    | Operator   |
+| Mario Huarcaya      | `mhuarcaya`  | `mhuarcaya`   | Supervisor |
 
 1. Sign in as Gabriel and create a ticket.
 2. Sign out and sign in as Fernando or Mario. Assign an eligible user, then start the ticket.
@@ -228,15 +228,15 @@ Angular tests use an HTTP testing backend. The production build is written under
 
 ## Troubleshooting
 
-| Symptom | Check |
-| --- | --- |
-| The pinned .NET SDK cannot be found | Install the SDK selected by `global.json` and restart the terminal or Visual Studio. |
-| SQL connection fails | Confirm the SQL Server service, instance name, authentication, database name, and account permissions. |
-| Connection string format error | Supply a complete SQL connection string, not a placeholder or just a server name. |
+| Symptom                                      | Check                                                                                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| The pinned .NET SDK cannot be found          | Install the SDK selected by `global.json` and restart the terminal or Visual Studio.                                      |
+| SQL connection fails                         | Confirm the SQL Server service, instance name, authentication, database name, and account permissions.                    |
+| Connection string format error               | Supply a complete SQL connection string, not a placeholder or just a server name.                                         |
 | Seed startup fails or Swagger is unavailable | Use `--no-launch-profile` with Development as shown above. Production intentionally disables Swagger and refuses seeding. |
-| Login fails on a fresh database | Apply scripts 001–003 and start with `DevelopmentSeed=true`. Existing account passwords are not reset by seeding. |
-| Angular still calls Azure | Set `environment.ts` to the local `/api` URL and restart Angular. |
-| An action returns 403, 409, or 422 | Check the current role, ticket state, required fields, and assignment rules. Refresh details after a concurrent change. |
+| Login fails on a fresh database              | Apply scripts 001–003 and start with `DevelopmentSeed=true`. Existing account passwords are not reset by seeding.         |
+| Angular still calls Azure                    | Set `environment.ts` to the local `/api` URL and restart Angular.                                                         |
+| An action returns 403, 409, or 422           | Check the current role, ticket state, required fields, and assignment rules. Refresh details after a concurrent change.   |
 
 ## Further documentation
 
