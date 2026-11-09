@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 namespace MaintenanceBoard.Tests.Api;
 
 public sealed class ApiTestFactory(
-    string environmentName = "Development", bool enableSeed = false, bool initializeDevelopmentUsers = false) : WebApplicationFactory<Program>
+    string environmentName = "Development", bool enableSeed = false) : WebApplicationFactory<Program>
 {
     internal TicketServiceContext Context { get; } = new();
     internal FakePasswordHasher Passwords { get; } = new();
@@ -32,9 +32,7 @@ public sealed class ApiTestFactory(
                     DataSource = "unused", InitialCatalog = "unused", IntegratedSecurity = true
                 }.ConnectionString,
                 ["Cors:AllowedOrigins:0"] = "https://frontend.example",
-                ["ConnectionStrings:Seed"] = "",
-                ["DevelopmentSeed:Enabled"] = enableSeed.ToString(),
-                ["DevelopmentUsers:Enabled"] = initializeDevelopmentUsers.ToString()
+                ["DevelopmentSeed"] = enableSeed.ToString()
             }));
         builder.ConfigureTestServices(services =>
         {

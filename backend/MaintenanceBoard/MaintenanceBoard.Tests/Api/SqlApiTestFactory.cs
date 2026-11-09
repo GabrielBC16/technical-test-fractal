@@ -1,4 +1,3 @@
-using MaintenanceBoard.Infrastructure.Development;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.SqlClient;
@@ -7,8 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MaintenanceBoard.Tests.Api;
 
-public sealed class SqlApiTestFactory(
-    DevelopmentSeedOptions? seed = null, bool initializeDevelopmentUsers = false) : WebApplicationFactory<Program>
+public sealed class SqlApiTestFactory(bool enableSeed = false) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -25,26 +23,11 @@ public sealed class SqlApiTestFactory(
         var settings = new Dictionary<string, string?>
         {
             ["ConnectionStrings:MaintenanceBoard"] = connectionString,
-            ["ConnectionStrings:Seed"] = "",
-            ["DevelopmentSeed:Enabled"] = (seed is not null).ToString(),
-            ["DevelopmentUsers:Enabled"] = initializeDevelopmentUsers.ToString(),
-            ["DevelopmentSeed:IncludeSampleTickets"] = (seed?.IncludeSampleTickets ?? false).ToString(),
+            // Obsolete seed connection settings must never be read by startup.
+            ["ConnectionStrings:Seed"] = "unused-invalid-legacy-value",
+            ["DevelopmentSeed"] = enableSeed.ToString(),
             ["Cors:AllowedOrigins:0"] = "https://frontend.example"
         };
-        if (seed is not null)
-        {
-            for (var index = 0; index < seed.Users.Count; index++)
-            {
-                var user = seed.Users[index];
-                var prefix = $"DevelopmentSeed:Users:{index}:";
-                settings[prefix + "UserName"] = user.UserName;
-                settings[prefix + "Names"] = user.Names;
-                settings[prefix + "LastNames"] = user.LastNames;
-                settings[prefix + "Role"] = user.Role.ToString();
-                settings[prefix + "Password"] = user.Password;
-            }
-        }
-
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(settings));
     }
 

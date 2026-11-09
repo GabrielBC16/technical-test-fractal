@@ -42,25 +42,23 @@ version. See the Microsoft advisories for
 
 ## Development data
 
-`DevelopmentSeeder.SeedAsync(environmentName, options)` refuses to run outside
-Development. The API milestone will wire its opt-in environment configuration;
-no automatic startup seeding has been enabled in this milestone.
+The API reads one Boolean: `DevelopmentSeed`. When true in Development it calls
+`DevelopmentSeeder.SeedAsync(environmentName)`, which uses the three fixed demo
+accounts requested for the technical test: Gabriel Barrantes (`gbarrantes`,
+Requester), Fernando Cabello (`fcabello`, Operator), and Mario Huarcaya
+(`mhuarcaya`, Supervisor). Each demo password equals its username and is stored
+as a BCrypt hash.
 
-Supply `DevelopmentSeedOptions` with usernames, names, roles, and passwords loaded
-from configuration. No application credentials are hardcoded. Include at least one
-Requester and one Operator/Supervisor to generate sample tickets. Seeding:
+The same transaction creates four sample tickets reported by Gabriel, assigned
+to Fernando and optionally Mario, with transitions, causes, comments, and history.
+An application lock serializes simultaneous starts. Existing users and sample
+tickets are preserved rather than duplicated or reset. False means no seed writes.
+Production refuses seeding. The existing overload accepting options is used by
+isolated repository tests, not by environment configuration or API startup.
 
-1. Acquires a transaction-owned application lock to serialize simultaneous starts.
-2. Inserts missing users with BCrypt hashes using the deployment/seed identity.
-3. Preserves existing users and passwords, rejecting role mismatches or inactive users.
-4. Optionally creates four `[Demo]` tickets through SPs, covering all four states,
-   assignments, a multi-assignee justification, causes, reasons, and comments.
-5. Commits users and sample tickets together, or rolls back the entire seed.
-
-Matching existing demo titles for the same reporter are left unchanged. Seeding
-does not reset an existing ticket's state. The seed identity requires INSERT on
-access.AppUser; it is separate from a restricted runtime identity when script 004
-is enabled. For the current technical-test setup, script 004 may remain deferred.
+The normal API connection is used. The development identity must be able to
+insert AppUser rows; security script 004 remains deferred for this technical test.
+There is no separate seed connection or user-list configuration.
 
 ## Validation
 

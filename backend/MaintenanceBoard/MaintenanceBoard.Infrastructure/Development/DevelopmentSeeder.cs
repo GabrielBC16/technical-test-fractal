@@ -11,6 +11,10 @@ namespace MaintenanceBoard.Infrastructure.Development;
 
 public sealed class DevelopmentSeeder(ISqlConnectionFactory connections, IPasswordHasher passwords)
 {
+    public Task<DevelopmentSeedResult> SeedAsync(
+        string environmentName, CancellationToken cancellationToken = default) =>
+        SeedAsync(environmentName, DefaultDevelopmentData.CreateOptions(), cancellationToken);
+
     public async Task<DevelopmentSeedResult> SeedAsync(
         string environmentName, DevelopmentSeedOptions options, CancellationToken cancellationToken = default)
     {

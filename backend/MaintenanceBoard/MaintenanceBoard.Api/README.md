@@ -32,50 +32,41 @@ transitive version, addressing the
 
 ## Environment configuration
 
-### Automatic local users
+Use a single Boolean in appsettings or set the environment variable `DevelopmentSeed`:
 
-On startup in Development, a small initializer creates these users if missing:
+```json
+"DevelopmentSeed": true
+```
 
-| User name    | Name              | Role       | Local demo password |
-| ------------ | ----------------- | ---------- | ------------------- |
-| `gbarrantes` | Gabriel Barrantes | Requester  | `gbarrantes`        |
-| `fcabello`   | Fernando Cabello  | Operator   | `fcabello`          |
-| `mhuarcaya`  | Mario Huarcaya    | Supervisor | `mhuarcaya`         |
+- `true`: create the three users below and four sample tickets using those users.
+- `false`: do not create users, tickets, assignments, comments, or history.
+- Repeated starts preserve existing IDs, passwords, ticket states, and sample tickets.
+- Seeding is allowed only in Development and uses the main API database connection.
 
-No extra seed configuration is needed for these three explicitly requested demo
-accounts. Restart the API with its Development launch profile after configuring
-the database connection. Passwords are stored as BCrypt hashes. Repeated starts
-do not duplicate users or replace existing passwords, and no sample tickets are
-created by this initializer. It never runs in Production. Set
-`DevelopmentUsers__Enabled=false` to disable it explicitly.
+| User name | Name | Role | Demo password |
+| --- | --- | --- | --- |
+| `gbarrantes` | Gabriel Barrantes | Requester | `gbarrantes` |
+| `fcabello` | Fernando Cabello | Operator | `fcabello` |
+| `mhuarcaya` | Mario Huarcaya | Supervisor | `mhuarcaya` |
 
-The configurable `DevelopmentSeed` feature below remains available separately.
+Gabriel reports all four sample tickets. Fernando attends them; Mario is also
+assigned to the Pending sample with a justification. The samples cover Pending,
+InProgress, Closed, and Rejected, including causes, rejection reasons, comments,
+and history. Passwords are stored as BCrypt hashes. There are no configured user
+lists, separate user initializer, optional seed connection, or sample-ticket flag.
 
-| Variable                                | Purpose                                                                                                            |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `ConnectionStrings__MaintenanceBoard`   | Required SQL Server connection string; must select the application database.                                       |
-| `Cors__AllowedOrigins__0`               | Allowed Angular origin, including scheme and optional port, without a path. Add numbered entries for more origins. |
-| `ASPNETCORE_ENVIRONMENT`                | Development locally; Production in Azure.                                                                          |
-| `ASPNETCORE_URLS`                       | Optional listening URLs when not using a launch profile.                                                           |
-| `DevelopmentUsers__Enabled`             | Defaults to true in Development only; creates the three local demo accounts above once.                            |
-| `DevelopmentSeed__Enabled`              | Defaults to false. Enable only in Development.                                                                     |
-| `DevelopmentSeed__IncludeSampleTickets` | Defaults to true when seeding is enabled.                                                                          |
-| `DevelopmentSeed__Users__0__UserName`   | First configured seed user's login name.                                                                           |
-| `DevelopmentSeed__Users__0__Names`      | First seed user's given names.                                                                                     |
-| `DevelopmentSeed__Users__0__LastNames`  | First seed user's family names.                                                                                    |
-| `DevelopmentSeed__Users__0__Role`       | Requester, Operator, or Supervisor, with exact spelling.                                                           |
-| `DevelopmentSeed__Users__0__Password`   | Seed password supplied by local configuration, never source control.                                               |
-| `ConnectionStrings__Seed`               | Optional deployment connection for inserting development users; defaults to the main connection.                   |
+| Variable | Purpose |
+| --- | --- |
+| `ConnectionStrings__MaintenanceBoard` | Required application database connection. |
+| `Cors__AllowedOrigins__0` | Allowed Angular origin; add numbered entries for more origins. |
+| `ASPNETCORE_ENVIRONMENT` | Development locally; Production in Azure. |
+| `ASPNETCORE_URLS` | Optional listening URLs outside launch profiles. |
+| `DevelopmentSeed` | The only seed switch; true or false. Defaults to false. |
 
-Repeat the seed-user entries with indices 1 and 2 for the other roles. Passwords
-must contain text and fit within 72 UTF-8 bytes. Startup seeding is transactional,
-repeatable, and preserves existing passwords. It refuses Production and requires
-appropriate user-insert permissions. Do not enable it in Azure Production.
-
-Without configured CORS origins, browser cross-origin calls are not allowed.
-Preflight requests are anonymous; normal ticket/user requests still require
-authentication. Allowed origins receive CORS headers on business-error responses
-so Angular can inspect ProblemDetails. The Location response header is exposed.
+Restart the API after changing the seed switch. Keep it false in Azure Production.
+Without configured CORS origins, browser cross-origin calls are denied. Preflight
+requests are anonymous; normal ticket/user requests still require authentication.
+CORS headers are retained on business errors and Location is exposed.
 
 ## Authentication limitation
 

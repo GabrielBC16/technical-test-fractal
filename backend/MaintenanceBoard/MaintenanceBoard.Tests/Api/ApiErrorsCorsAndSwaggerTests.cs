@@ -161,9 +161,9 @@ public sealed class ApiErrorsCorsAndSwaggerTests
     }
 
     [Fact]
-    public async Task Production_never_initializes_the_local_demo_accounts()
+    public async Task Disabled_seed_does_not_access_the_database_during_startup()
     {
-        await using var factory = new ApiTestFactory("Production", initializeDevelopmentUsers: true);
+        await using var factory = new ApiTestFactory(enableSeed: false);
         using var client = factory.Client("20");
 
         using var response = await client.GetAsync("/api/tickets/board");

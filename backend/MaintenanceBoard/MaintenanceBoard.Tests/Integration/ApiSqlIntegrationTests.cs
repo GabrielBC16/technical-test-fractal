@@ -2,9 +2,7 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using MaintenanceBoard.Domain.Access;
 using MaintenanceBoard.Application.Access;
-using MaintenanceBoard.Infrastructure.Development;
 using MaintenanceBoard.Tests.Api;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -119,7 +117,7 @@ public sealed class ApiSqlIntegrationTests
     }
 
     [SqlServerFact]
-    public async Task Default_initializer_creates_the_requested_users_once_with_usable_credentials()
+    public async Task Enabled_seed_creates_the_three_requested_users_and_their_tickets_once()
     {
         string[] userNames = ["gbarrantes", "fcabello", "mhuarcaya"];
         string[] names = ["Gabriel", "Fernando", "Mario"];
@@ -127,8 +125,9 @@ public sealed class ApiSqlIntegrationTests
         string[] roles = ["Requester", "Operator", "Supervisor"];
         var originalHashes = new Dictionary<string, string>();
         var originalIds = new Dictionary<string, int>();
+        int[] sampleIds;
 
-        await using (var factory = new SqlApiTestFactory(initializeDevelopmentUsers: true))
+        await using (var factory = new SqlApiTestFactory(enableSeed: true))
         {
             using var client = factory.Client();
             using var scope = factory.Services.CreateScope();
@@ -148,47 +147,68 @@ public sealed class ApiSqlIntegrationTests
                 originalHashes.Add(userName, credentials.PasswordHash);
                 originalIds.Add(userName, credentials.User.UserId);
             }
+
+            var repository = scope.ServiceProvider.GetRequiredService<MaintenanceBoard.Application.Tickets.ITicketRepository>();
+            var all = await repository.GetListAsync(new MaintenanceBoard.Application.Tickets.TicketQueryFilter(null, null, null));
+            var samples = all.Where(ticket => ticket.ReportedByUserId == originalIds["gbarrantes"]).ToArray();
+            Assert.Equal(4, samples.Length);
+            Assert.Equal(4, samples.Select(ticket => ticket.Status).Distinct().Count());
+            sampleIds = samples.Select(ticket => ticket.TicketId).Order().ToArray();
+            var pending = Assert.Single(samples, ticket => ticket.Status == MaintenanceBoard.Domain.Tickets.TicketStatus.Pending);
+            Assert.Equal(new[] { originalIds["fcabello"], originalIds["mhuarcaya"] }.Order(),
+                pending.Assignees.Select(user => user.UserId).Order());
+
+            foreach (var sample in samples)
+            {
+                var detail = await repository.GetDetailsAsync(sample.TicketId);
+                Assert.NotNull(detail);
+                Assert.All(detail.History, item => Assert.Contains(item.ActorUserId, originalIds.Values));
+                Assert.All(detail.Ticket.Assignees, user =>
+                    Assert.Contains(user.UserId, new[] { originalIds["fcabello"], originalIds["mhuarcaya"] }));
+            }
         }
 
-        await using var restarted = new SqlApiTestFactory(initializeDevelopmentUsers: true);
+        await using var restarted = new SqlApiTestFactory(enableSeed: true);
         using var restartedClient = restarted.Client();
         using var restartedScope = restarted.Services.CreateScope();
-        var repository = restartedScope.ServiceProvider.GetRequiredService<IUserRepository>();
+        var usersAfterRestart = restartedScope.ServiceProvider.GetRequiredService<IUserRepository>();
         foreach (var userName in userNames)
         {
-            var credentials = await repository.GetCredentialsByUserNameAsync(userName);
+            var credentials = await usersAfterRestart.GetCredentialsByUserNameAsync(userName);
             Assert.NotNull(credentials);
             Assert.Equal(originalIds[userName], credentials.User.UserId);
             Assert.Equal(originalHashes[userName], credentials.PasswordHash);
-            var tickets = await restartedScope.ServiceProvider.GetRequiredService<MaintenanceBoard.Application.Tickets.ITicketRepository>()
-                .GetListAsync(new MaintenanceBoard.Application.Tickets.TicketQueryFilter(null, null, null));
-            Assert.DoesNotContain(tickets, ticket => ticket.ReportedByUserId == credentials.User.UserId);
         }
+
+        var ticketsAfterRestart = await restartedScope.ServiceProvider.GetRequiredService<MaintenanceBoard.Application.Tickets.ITicketRepository>()
+            .GetListAsync(new MaintenanceBoard.Application.Tickets.TicketQueryFilter(null, null, null));
+        Assert.Equal(sampleIds, ticketsAfterRestart.Where(ticket => ticket.ReportedByUserId == originalIds["gbarrantes"])
+            .Select(ticket => ticket.TicketId).Order().ToArray());
     }
 
     [SqlServerFact]
-    public async Task Startup_seeding_reads_configuration_and_creates_usable_BCrypt_credentials()
+    public async Task Disabled_seed_leaves_all_database_counts_unchanged()
     {
-        var prefix = "http_seed_" + Guid.NewGuid().ToString("N");
-        var password = Guid.NewGuid().ToString("N") + "Aa1!";
-        var options = new DevelopmentSeedOptions([
-            new(prefix + "_requester", "Test", "Requester", UserRole.Requester, password),
-            new(prefix + "_operator", "Test", "Operator", UserRole.Operator, password),
-            new(prefix + "_supervisor", "Test", "Supervisor", UserRole.Supervisor, password)
-        ], IncludeSampleTickets: true);
-        await using var factory = new SqlApiTestFactory(options);
-        using var client = factory.Client();
+        var context = await SqlIntegrationContext.CreateAsync();
+        const string counts = """
+            SELECT CONCAT(
+                (SELECT COUNT_BIG(*) FROM access.AppUser), N'|',
+                (SELECT COUNT_BIG(*) FROM tickets.Ticket), N'|',
+                (SELECT COUNT_BIG(*) FROM tickets.TicketAssignment), N'|',
+                (SELECT COUNT_BIG(*) FROM tickets.TicketHistory));
+            """;
+        var before = await context.Database.ExecuteAsync((connection, token) =>
+            Dapper.SqlMapper.QuerySingleAsync<string>(connection, new Dapper.CommandDefinition(counts, cancellationToken: token)));
 
-        using var login = await client.PostAsJsonAsync("/api/auth/login",
-            new { userName = options.Users[0].UserName, password });
-        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
-        var identity = await login.Content.ReadFromJsonAsync<JsonElement>();
-        SetUser(client, identity.GetProperty("userId").GetInt32());
-        var tickets = await client.GetFromJsonAsync<JsonElement>("/api/tickets");
-        var ownTickets = tickets.EnumerateArray().Where(ticket =>
-            ticket.GetProperty("reportedByUserId").GetInt32() == identity.GetProperty("userId").GetInt32()).ToArray();
-        Assert.Equal(4, ownTickets.Length);
-        Assert.Equal(4, ownTickets.Select(ticket => ticket.GetProperty("status").GetString()).Distinct().Count());
+        await using var factory = new SqlApiTestFactory(enableSeed: false);
+        using var client = factory.Client();
+        SetUser(client, context.Requester.UserId);
+        using var response = await client.GetAsync("/api/tickets/board");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var after = await context.Database.ExecuteAsync((connection, token) =>
+            Dapper.SqlMapper.QuerySingleAsync<string>(connection, new Dapper.CommandDefinition(counts, cancellationToken: token)));
+        Assert.Equal(before, after);
     }
 
     private static void SetUser(HttpClient client, int userId)
