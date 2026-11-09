@@ -1,0 +1,48 @@
+<app-desktop-shell>
+<main id="main-content" class="board-content">
+      <div class="page-heading">
+        <div><h1>Tablero de tickets de mantenimiento</h1><p>Prioriza incidencias y acompaña cada ticket hasta su cierre.</p></div>
+        <button class="new-ticket" type="button" disabled title="Próximamente"><span aria-hidden="true">+</span> Nuevo ticket</button>
+      </div>
+      <section class="summary-grid" aria-label="Resumen de tickets">
+        @for (column of columns; track column.key) {
+          <div class="summary-card"><span class="summary-number" [attr.data-status]="column.status">{{ store.board() ? (store.board()![column.key].length < 10 ? '0' : '') + store.board()![column.key].length : '—' }}</span><span>{{ column.summary }}</span></div>
+        }
+      </section>
+      <section class="filters" aria-label="Filtros del tablero">
+        <label class="search-control"><span aria-hidden="true">⌕</span><span class="visually-hidden">Buscar por título o ID</span><input type="search" placeholder="Buscar por título o ID..." [value]="search()" (input)="search.set($any($event.target).value)" /></label>
+        <label class="select-control"><span>Estado:</span><select aria-label="Estado del ticket" [value]="status()" (change)="status.set($any($event.target).value)"><option value="">Todos</option>@for (column of columns; track column.key) { <option [value]="column.status">{{ column.label }}</option> }</select></label>
+        <label class="select-control"><span>Asignado:</span><select aria-label="Usuario asignado" [value]="assignee()" (change)="assignee.set($any($event.target).value)"><option value="">Todos</option>@for (user of assignees(); track user.id) { <option [value]="user.id">{{ user.name }}</option> }</select></label>
+        <button class="secondary-button" type="button" (click)="clearFilters()" [disabled]="!hasFilters()">Limpiar filtros</button>
+        <button class="secondary-button refresh" type="button" (click)="store.refresh()" [disabled]="store.state().status === 'loading'">Actualizar</button>
+      </section>
+      @switch (store.state().status) {
+        @case ('loading') {
+          <div class="feedback" role="status"><span class="loading-dot" aria-hidden="true"></span>Cargando tickets…</div>
+        }
+        @case ('error') {
+          <div class="feedback error-feedback" role="alert"><h2>No se pudo cargar el tablero</h2><p>{{ store.state().error }}</p><button class="secondary-button" type="button" (click)="store.refresh()">Reintentar</button></div>
+        }
+        @case ('ready') {
+          <p class="visually-hidden" role="status">{{ visibleCount() }} tickets visibles de {{ store.total() }}.</p>
+          @if (store.total() === 0) {
+            <div class="feedback" role="status"><h2>Aún no hay tickets</h2><p>Las incidencias pendientes, en progreso y cerradas aparecerán aquí.</p></div>
+          } @else if (visibleCount() === 0) {
+            <div class="feedback" role="status"><h2>No hay coincidencias</h2><p>Prueba con otro título, estado o usuario asignado.</p><button class="secondary-button" type="button" (click)="clearFilters()">Limpiar filtros</button></div>
+          } @else {
+            <section class="kanban" [style.grid-template-columns]="'repeat(' + visibleColumns().length + ', minmax(0, 1fr))'" aria-label="Tablero por estado">
+              @for (column of visibleColumns(); track column.key) {
+                <section class="kanban-column" [attr.aria-labelledby]="'column-' + column.key">
+                  <header class="column-heading"><h2 [id]="'column-' + column.key" class="status-badge" [attr.data-status]="column.status"><span aria-hidden="true">●</span>{{ column.label }}</h2><span class="column-count">{{ column.tickets.length }}</span></header>
+                  <div class="ticket-stack">
+                    @for (ticket of column.tickets; track ticket.ticketId) { <app-ticket-card [ticket]="ticket" /> }
+                    @empty { <p class="empty-column">No hay tickets en este estado.</p> }
+                  </div>
+                </section>
+              }
+            </section>
+          }
+        }
+      }
+    </main>
+</app-desktop-shell>

@@ -33,9 +33,8 @@ HTTP 403 leaves the session intact. Navigation guards are convenience checks; th
 
 Simulated authentication; replace with JWT/OIDC in production. Only the authentication handler needs to change.
 
-The login screen and signed-in landing page are functional foundation screens.
-The landing page explicitly indicates that the ticket board belongs to the next milestone.
-They are not claimed as a completed Figma implementation.
+The signed-in desktop board calls the real API and displays the three supported status groups.
+The login screen is preserved as customized by the project owner.
 
 ## Validation
 
@@ -71,7 +70,20 @@ The frontend must display UTC timestamps in local time.
 
 Design reference: https://www.figma.com/design/nbxTP0vNiHRD77P0uWRFg5/Fractal-%7C-Maintenance---Tickets?node-id=23-2294
 The reference was visually accessible in the browser; MCP design extraction hit the Starter plan limit.
-High-fidelity context and assets still need extraction before implementing the Figma desktop screens.
+The owner authorized the exported design PDFs as the implementation reference while the MCP quota is unavailable.
+The desktop shell follows the exported board layout, adapted to three backend groups and the required application title.
+
+## Desktop board
+
+- A component-scoped Signals store loads the board, cancels superseded requests, and supports retry.
+- Summary cards count the complete server snapshot. Column counts reflect local filters.
+- Search matches title or ticket ID; status and assignee filters operate on the loaded board.
+- Assignee options come from board assignments, so Requesters do not call the restricted users endpoint.
+- Real assignee initials, additional assignee counts, and browser-local creation dates are displayed.
+- Loading, empty, no-match, and Spanish error states are included.
+- New-ticket creation is disabled until milestone 3. Cards remain read-only until ticket details are implemented.
+- Date-range filtering, rejected-ticket listing, and responsive behavior remain in later milestones.
+- Demo ticket titles and descriptions remain exactly as returned by the API, including English seed content.
 
 ## Milestone 1 validation
 
@@ -80,3 +92,13 @@ High-fidelity context and assets still need extraction before implementing the F
 - The sandbox blocked Angular path resolution; both checks passed when rerun with the required filesystem access.
 - No API listener was detected on port 5213 during validation. A live login remains to be checked once the API and SQL Server are running.
 - No backend or database files were changed by this milestone.
+
+## Milestone 2 validation
+
+- Production build passed within the configured bundle and component-style budgets.
+- Basic checks: 9 tests across 3 files, including board loading, authenticated GET, local filtering, empty results, errors, and retry.
+- Browser smoke check passed against the running API and SQL Server: Requester login, three real board groups, UPS search, and clearing filters.
+- CORS was supplied only through the API process environment for http://localhost:4200; no backend configuration files were edited.
+- Desktop output was visually reviewed against the owner-approved exported board reference.
+- The API seed reported 0 new users and 0 new tickets. No ticket mutations were performed.
+- The owner's login HTML and all pre-existing backend/database changes were preserved and excluded from this milestone commit.
