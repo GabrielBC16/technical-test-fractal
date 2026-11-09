@@ -4,20 +4,20 @@ MaintenanceBoard is a maintenance ticket application built with Angular 21, Type
 
 ## Architecture overview
 
-The application uses standalone components, lazy-loaded routes, Angular Signals for reactive state, reactive forms for input validation, and RxJS for HTTP request handling and cancellation. It consumes the existing ASP.NET Core API through Angular HttpClient.
+The application uses standalone components, lazy-loaded routes, Angular Signals for reactive state, reactive forms for input validation, and RxJS for HTTP request handling and cancellation. It consumes the existing ASP.NET Core API of the backend, through Angular HttpClient.
 
 The main areas under `MaintenanceBoard-Frontend/src/app/` are:
 
-| Area | Responsibility |
-| --- | --- |
-| `core/auth/` | Simulated session, session/role guards, and the `X-User-Id` interceptor. |
-| `core/api/` | Injectable API base URL and Spanish error messages. |
-| `core/tickets/` | API contracts, HTTP client, date boundaries, and presentation helpers. |
-| `core/layout/` | Mobile breakpoint detection. |
-| `core/notifications/` | Shared toast notification state and lifecycle. |
-| `layout/` | Desktop sidebar, mobile navigation, account information, and logout. |
-| `features/` | Login, board, ticket list, creation, details, and ticket actions. |
-| `shared/` | Reusable side panels/dialogs and toast outlet. |
+| Area                  | Responsibility                                                           |
+| --------------------- | ------------------------------------------------------------------------ |
+| `core/auth/`          | Simulated session, session/role guards, and the `X-User-Id` interceptor. |
+| `core/api/`           | Injectable API base URL and Spanish error messages.                      |
+| `core/tickets/`       | API contracts, HTTP client, date boundaries, and presentation helpers.   |
+| `core/layout/`        | Mobile breakpoint detection.                                             |
+| `core/notifications/` | Shared toast notification state and lifecycle.                           |
+| `layout/`             | Desktop sidebar, mobile navigation, account information, and logout.     |
+| `features/`           | Login, board, ticket list, creation, details, and ticket actions.        |
+| `shared/`             | Reusable side panels/dialogs and toast outlet.                           |
 
 ### Main components
 
@@ -75,21 +75,13 @@ To use a local backend instead, set:
 
 ```typescript
 export const environment = {
-  apiBaseUrl: 'http://localhost:5213/api',
+  apiBaseUrl: "http://localhost:5213/api",
 };
 ```
 
 Keep the `/api` suffix. This is public frontend configuration, so it must not contain connection strings or secrets. Restart the development server after changing the API configuration if the update is not reflected.
 
-For a local API, first follow the setup instructions in [the backend README](../backend/MaintenanceBoard/MaintenanceBoard.Api/README.md), including its SQL Server requirements. Set the frontend origin in the API process before starting it:
-
-```powershell
-# In a separate terminal, from the repository root:
-$env:Cors__AllowedOrigins__0 = 'http://localhost:4200'
-dotnet run --project backend/MaintenanceBoard/MaintenanceBoard.Api
-```
-
-For the hosted API, its CORS configuration must also allow `http://localhost:4200`. This setting belongs to the backend, not Angular.
+For a local API, first follow the setup instructions in [the backend README](../backend/MaintenanceBoard/MaintenanceBoard.Api/README.md), including its SQL Server requirements.
 
 ### 5. Start Angular
 
@@ -105,11 +97,13 @@ If PowerShell blocks `npm.ps1`, use `npm.cmd ci` and `npm.cmd start` without cha
 
 Use an active account available in the selected backend. When its Development seed is enabled, the documented demo accounts are:
 
-| Username | Password | Role |
-| --- | --- | --- |
-| `gbarrantes` | `gbarrantes` | Requester |
-| `fcabello` | `fcabello` | Operator |
-| `mhuarcaya` | `mhuarcaya` | Supervisor |
+| Username     | Password     | Role       |
+| ------------ | ------------ | ---------- |
+| `gbarrantes` | `gbarrantes` | Requester  |
+| `fcabello`   | `fcabello`   | Operator   |
+| `pramirez`   | `pramirez`   | Operator   |
+| `jcordova`   | `jcordova`   | Operator   |
+| `mhuarcaya`  | `mhuarcaya`  | Supervisor |
 
 Demo account availability depends on the backend environment and seed configuration. Angular does not create users. Each authenticated API request sends the actual user ID returned by login; there is no JWT.
 
@@ -124,6 +118,4 @@ npm test -- --watch=false
 
 The production build is generated under `dist/MaintenanceBoard-Frontend/`. Tests use an HTTP testing backend and an explicitly overridden API URL; they do not create or change real tickets.
 
-If login fails, check that the configured API is available, the credentials are valid, and CORS allows the exact browser origin. A server error from the hosted API requires backend diagnosis. An Angular development server can start successfully while its API is unavailable.
-
-Implementation is complete, but the final visual review of authenticated mobile/tablet/desktop screens remains pending because the deployed API returned a server error during the last login check. Additional implementation and milestone notes are in [the Angular project README](MaintenanceBoard-Frontend/README.md).
+If login fails, check that the configured API is available, the credentials are valid, and CORS rules are open for all. A server error from the hosted API requires backend diagnosis. An Angular development server can start successfully while its API is unavailable.
