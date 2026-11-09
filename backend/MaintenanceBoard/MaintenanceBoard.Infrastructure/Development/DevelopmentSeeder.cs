@@ -122,7 +122,7 @@ public sealed class DevelopmentSeeder(ISqlConnectionFactory connections, IPasswo
                             await connection.ExecuteAsync(new CommandDefinition("tickets.usp_AssignTicket", new
                             {
                                 TicketId = ticketId, AssignedUserId = secondary.UserId, ActorUserId = primary.UserId,
-                                Justification = "Electrical and hardware specialists are required."
+                                Justification = "Se requiere apoyo de especialistas en electricidad y hardware."
                             }, transaction, commandType: CommandType.StoredProcedure, cancellationToken: token));
                         }
                     }
@@ -136,17 +136,17 @@ public sealed class DevelopmentSeeder(ISqlConnectionFactory connections, IPasswo
                     if (target == TicketStatus.Closed)
                     {
                         await TransitionAsync(connection, transaction, ticketId, TicketStatus.InProgress,
-                            TicketStatus.Closed, primary.UserId, null, "Wear in the card reader module.", token);
+                            TicketStatus.Closed, primary.UserId, null, "Desgaste del módulo lector de tarjetas.", token);
                     }
                     else if (target == TicketStatus.Rejected)
                     {
                         await TransitionAsync(connection, transaction, ticketId, TicketStatus.Pending,
-                            TicketStatus.Rejected, primary.UserId, "Duplicate of an existing incident.", null, token);
+                            TicketStatus.Rejected, primary.UserId, "El incidente ya está registrado en otro ticket.", null, token);
                     }
 
                     await connection.ExecuteAsync(new CommandDefinition("tickets.usp_AddTicketComment", new
                     {
-                        TicketId = ticketId, ActorUserId = requester.UserId, Comment = "Development demonstration ticket."
+                        TicketId = ticketId, ActorUserId = requester.UserId, Comment = "Ticket de demostración de desarrollo."
                     }, transaction, commandType: CommandType.StoredProcedure, cancellationToken: token));
                     createdTickets++;
                 }
@@ -201,9 +201,9 @@ public sealed class DevelopmentSeeder(ISqlConnectionFactory connections, IPasswo
 
     private static readonly (string Title, string Description, TicketStatus Status)[] Samples =
     [
-        ("[Demo] ATM unavailable", "The terminal screen is unresponsive.", TicketStatus.Pending),
-        ("[Demo] UPS alarm", "The backup power system reports an alarm.", TicketStatus.InProgress),
-        ("[Demo] Card reader repaired", "The card reader failed and was replaced.", TicketStatus.Closed),
-        ("[Demo] Duplicate incident", "This incident is already being handled.", TicketStatus.Rejected)
+        ("Cajero ATM malogrado", "La pantalla de la consola se quedó congelada.", TicketStatus.Pending),
+        ("Alarma UPS", "El sistema de respaldo eléctrico reporta una falla.", TicketStatus.InProgress),
+        ("Lector de tarjetas averiado", "El lector de tarjetas falla al leer.", TicketStatus.Closed),
+        ("Incidente duplicado del cajero ATM", "La falla del cajero ya está registrada en otro ticket.", TicketStatus.Rejected)
     ];
 }

@@ -51,7 +51,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.InvalidModelStateResponseFactory = ApiProblem.ModelValidation);
 
 builder.Services.AddCors();
-builder.Services.AddOptions<CorsOptions>().Configure<IConfiguration>((options, configuration) =>
+/*builder.Services.AddOptions<CorsOptions>().Configure<IConfiguration>((options, configuration) =>
 {
     var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
     if (allowedOrigins.Any(origin => !Uri.TryCreate(origin, UriKind.Absolute, out var uri) ||
@@ -64,6 +64,16 @@ builder.Services.AddOptions<CorsOptions>().Configure<IConfiguration>((options, c
     options.AddPolicy("Frontend", policy => policy
         .WithOrigins(allowedOrigins.Select(origin => origin.TrimEnd('/')).ToArray())
         .WithMethods("GET", "POST", "OPTIONS")
+        .AllowAnyHeader()
+        .WithExposedHeaders("Location"));
+});*/
+
+//For this time, we allow any origin
+builder.Services.AddOptions<CorsOptions>().Configure(options =>
+{
+    options.AddPolicy("Frontend", policy => policy
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
         .AllowAnyHeader()
         .WithExposedHeaders("Location"));
 });

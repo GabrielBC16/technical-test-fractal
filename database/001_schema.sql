@@ -1,5 +1,8 @@
 -- Run against an existing, empty application database as its deployment owner.
 -- This bootstrap script preserves existing tables; it is not a schema migration engine.
+
+CREATE DATABASE MaintenanceBoard;
+USE MaintenanceBoard;
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 SET ANSI_NULLS ON;
@@ -22,7 +25,7 @@ BEGIN
     CREATE TABLE [access].[AppUser]
     (
         [UserId] int IDENTITY(1, 1) NOT NULL,
-        [UserName] nvarchar(100) NOT NULL,
+        [UserName] nvarchar(20) NOT NULL,
         [PasswordHash] nvarchar(255) NOT NULL,
         [Names] nvarchar(100) NOT NULL,
         [LastNames] nvarchar(150) NOT NULL,

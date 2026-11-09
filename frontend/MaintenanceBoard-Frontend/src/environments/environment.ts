@@ -1,3 +1,3 @@
 export const environment = {
-  apiBaseUrl: 'http://localhost:5213/api',
+  apiBaseUrl: 'https://maintenanceboard-b7dagedhgdbxdna8.westus3-01.azurewebsites.net/api',
 };

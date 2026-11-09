@@ -1,4 +1,4 @@
-# MaintenanceBoard API
+# MaintenanceBoard API, Backend and Database setup
 
 Controller-based ASP.NET Core API targeting the SDK in the repository's
 `global.json`. Open `../MaintenanceBoard.slnx` in Visual Studio. No Dockerfile is
@@ -6,12 +6,8 @@ included; deployment is intended for Azure App Service using a published .NET ap
 
 ## Local startup
 
-1. Apply database scripts 001, 002, and 003 using a deployment identity. Reapply
-   001 and 003 if using the earlier bootstrap, so the filtered-index session options
-   and binary Unicode whitespace guard are current. Script 004 remains deferred
-   for the current technical-test setup.
+1. Apply database scripts 001, 002, and 003 using a deployment identity in a SQL Server Database.
 2. Set process environment variables before starting the API or Visual Studio.
-   The root `.env.example` is a reference; ASP.NET Core does not load `.env` files.
 3. Start the API from the repository root:
 
 ```powershell
@@ -21,20 +17,38 @@ $env:Cors__AllowedOrigins__0 = '<ANGULAR_ORIGIN>'
 dotnet run --project backend/MaintenanceBoard/MaintenanceBoard.Api --launch-profile http
 ```
 
+or write the Environment Variables in the file appsettings.json before launch. Example:
+
+```JSON
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "MaintenanceBoard": "{yourconnectionstring}"
+  },
+  "Cors": {
+    "AllowedOrigins": []
+  },
+  "DevelopmentSeed": true
+}
+
+```
+
 The existing HTTP launch profile listens on port 5213. Swagger UI is available
 at `/swagger` and the specification at `/swagger/v1/swagger.json` in Development
 only. Use **Authorize** to enter the active user ID returned by login. API examples
 are provided in `MaintenanceBoard.Api.http`; replace its placeholders first.
 
-Microsoft.OpenApi is explicitly pinned to 2.12.2 instead of SwaggerGen's older
-transitive version, addressing the
-[circular-reference parsing advisory](https://github.com/advisories/GHSA-v5pm-xwqc-g5wc).
-
 ## Environment configuration
 
 Use a single Boolean in appsettings or set the environment variable `DevelopmentSeed`:
 
-```json
+```JSON
 "DevelopmentSeed": true
 ```
 
@@ -43,11 +57,13 @@ Use a single Boolean in appsettings or set the environment variable `Development
 - Repeated starts preserve existing IDs, passwords, ticket states, and sample tickets.
 - Seeding is allowed only in Development and uses the main API database connection.
 
-| User name | Name | Role | Demo password |
-| --- | --- | --- | --- |
-| `gbarrantes` | Gabriel Barrantes | Requester | `gbarrantes` |
-| `fcabello` | Fernando Cabello | Operator | `fcabello` |
-| `mhuarcaya` | Mario Huarcaya | Supervisor | `mhuarcaya` |
+| User name    | Name                | Role       | Demo password |
+| ------------ | ------------------- | ---------- | ------------- |
+| `gbarrantes` | Gabriel Barrantes   | Requester  | `gbarrantes`  |
+| `fcabello`   | Fernando Cabello    | Operator   | `fcabello`    |
+| `jcordova`   | Juan Carlos Cordova | Operator   | `jcordova`    |
+| `pramirez`   | Pedro Ramirez       | Operator   | `pramirez`    |
+| `mhuarcaya`  | Mario Huarcaya      | Supervisor | `mhuarcaya`   |
 
 Gabriel reports all four sample tickets. Fernando attends them; Mario is also
 assigned to the Pending sample with a justification. The samples cover Pending,
@@ -55,13 +71,14 @@ InProgress, Closed, and Rejected, including causes, rejection reasons, comments,
 and history. Passwords are stored as BCrypt hashes. There are no configured user
 lists, separate user initializer, optional seed connection, or sample-ticket flag.
 
-| Variable | Purpose |
-| --- | --- |
-| `ConnectionStrings__MaintenanceBoard` | Required application database connection. |
-| `Cors__AllowedOrigins__0` | Allowed Angular origin; add numbered entries for more origins. |
-| `ASPNETCORE_ENVIRONMENT` | Development locally; Production in Azure. |
-| `ASPNETCORE_URLS` | Optional listening URLs outside launch profiles. |
-| `DevelopmentSeed` | The only seed switch; true or false. Defaults to false. |
+## ENVIRONMENT VARIABLES
+
+| Variable                              | Purpose                                                 |
+| ------------------------------------- | ------------------------------------------------------- |
+| `ConnectionStrings__MaintenanceBoard` | Required application database connection.               |
+| `ASPNETCORE_ENVIRONMENT`              | "Development" locally; "Production" in Azure.           |
+| `ASPNETCORE_URLS`                     | Optional listening URLs outside launch profiles.        |
+| `DevelopmentSeed`                     | The only seed switch; true or false. Defaults to false. |
 
 Restart the API after changing the seed switch. Keep it false in Azure Production.
 Without configured CORS origins, browser cross-origin calls are denied. Preflight
@@ -116,21 +133,3 @@ Errors use RFC 7807 ProblemDetails with `type`, `title`, `status`, `detail`,
 Basic required-field and length checks run during model validation and return 400.
 Conditional workflow guards remain in Application and SQL and return their business
 status, such as 422 for a missing closure cause. Controllers contain no workflow rules.
-
-## Azure App Service preparation
-
-Publish a framework-dependent app without a platform-specific launcher:
-
-```powershell
-dotnet publish backend/MaintenanceBoard/MaintenanceBoard.Api --configuration Release --output .artifacts/publish/api -p:UseAppHost=false
-```
-
-Deploy that output to an App Service with a compatible .NET 10 runtime. Configure
-the variables above in App Service environment settings, set Production, keep
-development seeding disabled, and configure the actual Angular origin. Do not
-publish development credentials. Swagger is intentionally unavailable in Production.
-
-Enable **HTTPS Only** in App Service. The hosting platform terminates TLS; the API
-does not redirect the internal HTTP hop. Created-resource Locations are relative,
-so they remain valid behind the platform proxy. Azure resource provisioning,
-network/database access configuration, and deployment are outside this milestone.

@@ -8,6 +8,8 @@ internal static class DefaultDevelopmentData
     [
         new("gbarrantes", "Gabriel", "Barrantes", UserRole.Requester, "gbarrantes"),
         new("fcabello", "Fernando", "Cabello", UserRole.Operator, "fcabello"),
+        new("pramirez", "Pedro", "Ramirez", UserRole.Operator, "pramirez"),
+        new("jcordova", "Juan Carlos", "Cordova", UserRole.Operator,"jcordova"),
         new("mhuarcaya", "Mario", "Huarcaya", UserRole.Supervisor, "mhuarcaya")
     ], IncludeSampleTickets: true);
 }
