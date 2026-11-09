@@ -161,6 +161,18 @@ public sealed class ApiErrorsCorsAndSwaggerTests
     }
 
     [Fact]
+    public async Task Production_never_initializes_the_local_demo_accounts()
+    {
+        await using var factory = new ApiTestFactory("Production", initializeDevelopmentUsers: true);
+        using var client = factory.Client("20");
+
+        using var response = await client.GetAsync("/api/tickets/board");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(0, factory.Context.Tickets.WriteCalls);
+    }
+
+    [Fact]
     public async Task Swagger_is_not_exposed_in_Production()
     {
         await using var factory = new ApiTestFactory("Production");

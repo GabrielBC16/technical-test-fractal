@@ -7,7 +7,8 @@ using Microsoft.Extensions.Logging;
 
 namespace MaintenanceBoard.Tests.Api;
 
-public sealed class SqlApiTestFactory(DevelopmentSeedOptions? seed = null) : WebApplicationFactory<Program>
+public sealed class SqlApiTestFactory(
+    DevelopmentSeedOptions? seed = null, bool initializeDevelopmentUsers = false) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -26,6 +27,7 @@ public sealed class SqlApiTestFactory(DevelopmentSeedOptions? seed = null) : Web
             ["ConnectionStrings:MaintenanceBoard"] = connectionString,
             ["ConnectionStrings:Seed"] = "",
             ["DevelopmentSeed:Enabled"] = (seed is not null).ToString(),
+            ["DevelopmentUsers:Enabled"] = initializeDevelopmentUsers.ToString(),
             ["DevelopmentSeed:IncludeSampleTickets"] = (seed?.IncludeSampleTickets ?? false).ToString(),
             ["Cors:AllowedOrigins:0"] = "https://frontend.example"
         };

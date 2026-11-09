@@ -32,20 +32,40 @@ transitive version, addressing the
 
 ## Environment configuration
 
-| Variable | Purpose |
-| --- | --- |
-| `ConnectionStrings__MaintenanceBoard` | Required SQL Server connection string; must select the application database. |
-| `Cors__AllowedOrigins__0` | Allowed Angular origin, including scheme and optional port, without a path. Add numbered entries for more origins. |
-| `ASPNETCORE_ENVIRONMENT` | Development locally; Production in Azure. |
-| `ASPNETCORE_URLS` | Optional listening URLs when not using a launch profile. |
-| `DevelopmentSeed__Enabled` | Defaults to false. Enable only in Development. |
-| `DevelopmentSeed__IncludeSampleTickets` | Defaults to true when seeding is enabled. |
-| `DevelopmentSeed__Users__0__UserName` | First configured seed user's login name. |
-| `DevelopmentSeed__Users__0__Names` | First seed user's given names. |
-| `DevelopmentSeed__Users__0__LastNames` | First seed user's family names. |
-| `DevelopmentSeed__Users__0__Role` | Requester, Operator, or Supervisor, with exact spelling. |
-| `DevelopmentSeed__Users__0__Password` | Seed password supplied by local configuration, never source control. |
-| `ConnectionStrings__Seed` | Optional deployment connection for inserting development users; defaults to the main connection. |
+### Automatic local users
+
+On startup in Development, a small initializer creates these users if missing:
+
+| User name    | Name              | Role       | Local demo password |
+| ------------ | ----------------- | ---------- | ------------------- |
+| `gbarrantes` | Gabriel Barrantes | Requester  | `gbarrantes`        |
+| `fcabello`   | Fernando Cabello  | Operator   | `fcabello`          |
+| `mhuarcaya`  | Mario Huarcaya    | Supervisor | `mhuarcaya`         |
+
+No extra seed configuration is needed for these three explicitly requested demo
+accounts. Restart the API with its Development launch profile after configuring
+the database connection. Passwords are stored as BCrypt hashes. Repeated starts
+do not duplicate users or replace existing passwords, and no sample tickets are
+created by this initializer. It never runs in Production. Set
+`DevelopmentUsers__Enabled=false` to disable it explicitly.
+
+The configurable `DevelopmentSeed` feature below remains available separately.
+
+| Variable                                | Purpose                                                                                                            |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `ConnectionStrings__MaintenanceBoard`   | Required SQL Server connection string; must select the application database.                                       |
+| `Cors__AllowedOrigins__0`               | Allowed Angular origin, including scheme and optional port, without a path. Add numbered entries for more origins. |
+| `ASPNETCORE_ENVIRONMENT`                | Development locally; Production in Azure.                                                                          |
+| `ASPNETCORE_URLS`                       | Optional listening URLs when not using a launch profile.                                                           |
+| `DevelopmentUsers__Enabled`             | Defaults to true in Development only; creates the three local demo accounts above once.                            |
+| `DevelopmentSeed__Enabled`              | Defaults to false. Enable only in Development.                                                                     |
+| `DevelopmentSeed__IncludeSampleTickets` | Defaults to true when seeding is enabled.                                                                          |
+| `DevelopmentSeed__Users__0__UserName`   | First configured seed user's login name.                                                                           |
+| `DevelopmentSeed__Users__0__Names`      | First seed user's given names.                                                                                     |
+| `DevelopmentSeed__Users__0__LastNames`  | First seed user's family names.                                                                                    |
+| `DevelopmentSeed__Users__0__Role`       | Requester, Operator, or Supervisor, with exact spelling.                                                           |
+| `DevelopmentSeed__Users__0__Password`   | Seed password supplied by local configuration, never source control.                                               |
+| `ConnectionStrings__Seed`               | Optional deployment connection for inserting development users; defaults to the main connection.                   |
 
 Repeat the seed-user entries with indices 1 and 2 for the other roles. Passwords
 must contain text and fit within 72 UTF-8 bytes. Startup seeding is transactional,
@@ -66,8 +86,7 @@ authentication handler needs to change.**
 `userName`, `names`, `lastNames`, and `role`. It does not issue a token. Subsequent
 calls send a single positive integer in `X-User-Id`. The handler reloads that user
 from SQL, requires an active account, and creates NameIdentifier and Role claims.
-Missing, invalid, unknown, or inactive users receive 401; disallowed roles receive
-403. The header is an impersonation mechanism for the exercise, not a secure token.
+Missing, invalid, unknown, or inactive users receive 401; disallowed roles receive 403. The header is an impersonation mechanism for the exercise, not a secure token.
 
 Actor IDs always come from the authenticated principal. Request bodies containing
 `reportedByUserId`, `actorUserId`, `assignedByUserId`, or other unmapped fields are
@@ -75,17 +94,17 @@ rejected with 400. Only the assignment target `assignedUserId` belongs in its bo
 
 ## Endpoints
 
-| Method | Route | Authorization / result |
-| --- | --- | --- |
-| POST | `/api/auth/login` | Anonymous; returns the verified identity. |
-| POST | `/api/tickets` | Any active role; creates Pending and its initial history event; returns 201 and Location. |
-| GET | `/api/tickets/board` | Any active role; Pending, InProgress, and Closed groups. |
-| GET | `/api/tickets` | Any active role; optional `status`, `from`, and `to` query parameters. May include Rejected. |
-| GET | `/api/tickets/{id}` | Any active role; ticket, assignees, cause, and complete chronological history. |
-| POST | `/api/tickets/{id}/transitions` | Operator/Supervisor; expectedStatus, newStatus, optional comment/cause; returns 204. |
-| POST | `/api/tickets/{id}/assignments` | Operator/Supervisor; assignedUserId and optional justification; returns 204. |
-| POST | `/api/tickets/{id}/comments` | Requester on own tickets; Operator/Supervisor on any ticket; returns 204. |
-| GET | `/api/users` | Operator/Supervisor; active eligible assignees only. |
+| Method | Route                           | Authorization / result                                                                       |
+| ------ | ------------------------------- | -------------------------------------------------------------------------------------------- |
+| POST   | `/api/auth/login`               | Anonymous; returns the verified identity.                                                    |
+| POST   | `/api/tickets`                  | Any active role; creates Pending and its initial history event; returns 201 and Location.    |
+| GET    | `/api/tickets/board`            | Any active role; Pending, InProgress, and Closed groups.                                     |
+| GET    | `/api/tickets`                  | Any active role; optional `status`, `from`, and `to` query parameters. May include Rejected. |
+| GET    | `/api/tickets/{id}`             | Any active role; ticket, assignees, cause, and complete chronological history.               |
+| POST   | `/api/tickets/{id}/transitions` | Operator/Supervisor; expectedStatus, newStatus, optional comment/cause; returns 204.         |
+| POST   | `/api/tickets/{id}/assignments` | Operator/Supervisor; assignedUserId and optional justification; returns 204.                 |
+| POST   | `/api/tickets/{id}/comments`    | Requester on own tickets; Operator/Supervisor on any ticket; returns 204.                    |
+| GET    | `/api/users`                    | Operator/Supervisor; active eligible assignees only.                                         |
 
 Statuses, roles, and event types are serialized as English strings. Dates are UTC.
 The list filter accepts ISO 8601 offsets, converts them to UTC, includes `from`,

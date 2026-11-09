@@ -3,8 +3,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using MaintenanceBoard.Domain.Access;
+using MaintenanceBoard.Application.Access;
 using MaintenanceBoard.Infrastructure.Development;
 using MaintenanceBoard.Tests.Api;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MaintenanceBoard.Tests.Integration;
 
@@ -114,6 +116,54 @@ public sealed class ApiSqlIntegrationTests
         client.DefaultRequestHeaders.Remove("X-User-Id");
         using var missingIdentity = await client.GetAsync("/api/tickets/board");
         await ApiAuthenticationAndValidationTests.AssertProblemAsync(missingIdentity, HttpStatusCode.Unauthorized);
+    }
+
+    [SqlServerFact]
+    public async Task Default_initializer_creates_the_requested_users_once_with_usable_credentials()
+    {
+        string[] userNames = ["gbarrantes", "fcabello", "mhuarcaya"];
+        string[] names = ["Gabriel", "Fernando", "Mario"];
+        string[] lastNames = ["Barrantes", "Cabello", "Huarcaya"];
+        string[] roles = ["Requester", "Operator", "Supervisor"];
+        var originalHashes = new Dictionary<string, string>();
+        var originalIds = new Dictionary<string, int>();
+
+        await using (var factory = new SqlApiTestFactory(initializeDevelopmentUsers: true))
+        {
+            using var client = factory.Client();
+            using var scope = factory.Services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            for (var index = 0; index < userNames.Length; index++)
+            {
+                var userName = userNames[index];
+                using var login = await client.PostAsJsonAsync("/api/auth/login", new { userName, password = userName });
+                Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+                var identity = await login.Content.ReadFromJsonAsync<JsonElement>();
+                Assert.Equal(names[index], identity.GetProperty("names").GetString());
+                Assert.Equal(lastNames[index], identity.GetProperty("lastNames").GetString());
+                Assert.Equal(roles[index], identity.GetProperty("role").GetString());
+                var credentials = await users.GetCredentialsByUserNameAsync(userName);
+                Assert.NotNull(credentials);
+                Assert.NotEqual(userName, credentials.PasswordHash);
+                originalHashes.Add(userName, credentials.PasswordHash);
+                originalIds.Add(userName, credentials.User.UserId);
+            }
+        }
+
+        await using var restarted = new SqlApiTestFactory(initializeDevelopmentUsers: true);
+        using var restartedClient = restarted.Client();
+        using var restartedScope = restarted.Services.CreateScope();
+        var repository = restartedScope.ServiceProvider.GetRequiredService<IUserRepository>();
+        foreach (var userName in userNames)
+        {
+            var credentials = await repository.GetCredentialsByUserNameAsync(userName);
+            Assert.NotNull(credentials);
+            Assert.Equal(originalIds[userName], credentials.User.UserId);
+            Assert.Equal(originalHashes[userName], credentials.PasswordHash);
+            var tickets = await restartedScope.ServiceProvider.GetRequiredService<MaintenanceBoard.Application.Tickets.ITicketRepository>()
+                .GetListAsync(new MaintenanceBoard.Application.Tickets.TicketQueryFilter(null, null, null));
+            Assert.DoesNotContain(tickets, ticket => ticket.ReportedByUserId == credentials.User.UserId);
+        }
     }
 
     [SqlServerFact]

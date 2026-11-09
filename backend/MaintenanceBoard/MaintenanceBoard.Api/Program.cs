@@ -116,6 +116,7 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+await app.InitializeDevelopmentUsersAsync();
 await app.SeedDevelopmentDataAsync();
 app.Run();
 
