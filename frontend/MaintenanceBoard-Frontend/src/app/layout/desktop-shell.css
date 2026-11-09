@@ -3,8 +3,9 @@
 .sidebar { display: flex; flex-direction: column; width: 200px; flex-shrink: 0; padding: 26px 24px 64px; background: white; }
 .brand { color: #087395; font-size: 24px; font-weight: 700; text-decoration: none; }
 .sidebar-subtitle { margin: 28px 0 24px; padding-bottom: 24px; border-bottom: 1px solid #d9dfe7; color: #5d6d85; font-size: 12px; line-height: 1.5; font-weight: 600; }
-.active-nav { display: flex; align-items: center; gap: 14px; padding: 15px 12px; border-radius: 10px; background: #fff5dc; color: #805000; text-decoration: none; font-weight: 600; }
-.active-nav span { font-size: 20px; }
+.nav-link { display: flex; align-items: center; gap: 14px; padding: 15px 12px; margin-bottom: 6px; border-radius: 10px; color: #5d6d85; text-decoration: none; font-weight: 600; }
+.nav-link span { font-size: 20px; }
+.active-nav { background: #fff5dc; color: #805000; }
 .workspace-label { margin: 26px 0; font-size: 11px; color: #5d6d85; }
 .sidebar-description { margin: 0; color: #5d6d85; line-height: 1.5; }
 .sidebar-note { margin-top: auto; padding: 14px 12px; border-radius: 12px; background: #f5f6f8; line-height: 1.45; }

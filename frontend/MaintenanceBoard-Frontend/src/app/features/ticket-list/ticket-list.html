@@ -1,0 +1,33 @@
+<app-desktop-shell>
+  <main class="list-content">
+    <header class="page-heading"><div><h1>Listado de tickets</h1><p>Consulta todas las incidencias, incluidos los tickets rechazados.</p></div><button type="button" class="primary" (click)="panel.set({ kind: 'create' })">+ Nuevo ticket</button></header>
+    <form class="filters" [formGroup]="form" (ngSubmit)="apply()" aria-label="Filtros del listado">
+      <label>Estado<select formControlName="status"><option value="">Todos</option>@for (status of statuses; track status) { <option [value]="status">{{ labels[status] }}</option> }</select></label>
+      <label>Desde<input type="date" formControlName="from" aria-describedby="date-help" /></label>
+      <label>Hasta<input type="date" formControlName="to" aria-describedby="date-help" /></label>
+      <button type="submit" class="primary">Aplicar filtros</button><button type="button" class="secondary" (click)="clearFilters()">Limpiar filtros</button>
+    </form>
+    <p id="date-help" class="helper">El rango incluye ambos días y usa tu horario local.</p>
+    @if (filterError()) { <p role="alert" class="filter-error">{{ filterError() }}</p> }
+    <div class="list-toolbar"><label class="search"><span class="sr-only">Buscar por título o ID</span><input type="search" placeholder="Buscar por título o ID..." [value]="search()" (input)="search.set($any($event.target).value)" /></label><button type="button" class="secondary" (click)="refresh()" [disabled]="state().status === 'loading'">Actualizar</button></div>
+    @switch (state().status) {
+      @case ('loading') { <div role="status" class="feedback">Cargando tickets…</div> }
+      @case ('error') { <div role="alert" class="feedback"><h2>No se pudo cargar el listado</h2><p>{{ state().error }}</p><button type="button" class="secondary" (click)="refresh()">Reintentar</button></div> }
+      @case ('ready') {
+        <p class="result-count" role="status">{{ visible().length }} {{ visible().length === 1 ? 'ticket encontrado' : 'tickets encontrados' }}</p>
+        @if (!visible().length) { <div role="status" class="feedback"><h2>No hay tickets para esta consulta</h2><p>Prueba con otro estado, rango de fechas o título.</p><button type="button" class="secondary" (click)="clearFilters()">Limpiar filtros</button></div> }
+        @else {
+          <div class="table-container"><table><caption class="sr-only">Tickets de mantenimiento y sus responsables</caption><thead><tr><th scope="col">Ticket</th><th scope="col">Estado</th><th scope="col">Reportado por</th><th scope="col">Asignados</th><th scope="col">Fecha de creación</th></tr></thead><tbody>
+          @for (ticket of visible(); track ticket.ticketId) {
+            <tr><td><button type="button" class="ticket-link" aria-haspopup="dialog" (click)="panel.set({ kind: 'detail', ticketId: ticket.ticketId })">#{{ ticket.ticketId }} · {{ ticket.title }}</button><p class="ticket-description">{{ ticket.description }}</p></td><td><span class="status-badge" [attr.data-status]="ticket.status">{{ labels[ticket.status] }}</span></td><td>{{ ticket.reportedByDisplayName }}</td><td>{{ assigneeNames(ticket) }}</td><td><time [attr.datetime]="ticket.createdAtUtc">{{ localDate(ticket.createdAtUtc) }}</time></td></tr>
+          }
+          </tbody></table></div>
+        }
+      }
+    }
+  </main>
+</app-desktop-shell>
+@if (panel(); as selected) {
+  @if (selected.kind === 'create') { <app-create-ticket (dismissed)="panel.set(null)" (created)="ticketCreated($event)" /> }
+  @else { <app-ticket-detail [ticketId]="selected.ticketId" (dismissed)="panel.set(null)" (changed)="refresh()" /> }
+}

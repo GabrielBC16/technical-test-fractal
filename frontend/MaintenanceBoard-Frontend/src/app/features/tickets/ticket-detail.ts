@@ -7,6 +7,7 @@ import { initials, localTicketDate } from '../../core/tickets/ticket-presentatio
 import { TicketsApiService } from '../../core/tickets/tickets-api.service';
 import { SidePanel } from '../../shared/side-panel/side-panel';
 import { TicketActions } from './ticket-actions';
+import { ToastService } from '../../core/notifications/toast.service';
 
 @Component({
   selector: 'app-ticket-detail',
@@ -19,7 +20,7 @@ export class TicketDetail implements OnChanges {
   readonly dismissed = output<void>();
   readonly changed = output<void>();
   protected readonly actionBusy = signal(false);
-  protected readonly notice = signal('');
+  private readonly toast = inject(ToastService);
   protected readonly details = signal<TicketDetails | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal('');
@@ -51,7 +52,7 @@ export class TicketDetail implements OnChanges {
 
   /** Reload server history and notify the board after an acknowledged mutation. */
   protected actionCompleted(message: string): void {
-    this.notice.set(message);
+    this.toast.show(message);
     this.changed.emit();
     this.load();
   }

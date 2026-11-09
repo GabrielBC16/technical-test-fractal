@@ -1,7 +1,10 @@
 import { afterNextRender, Component, DestroyRef, ElementRef, inject, input, output, viewChild } from '@angular/core';
+import { ToastService } from '../../core/notifications/toast.service';
+import { ToastOutlet } from '../toast-outlet/toast-outlet';
 
 @Component({
   selector: 'app-side-panel',
+  imports: [ToastOutlet],
   template: `
     <dialog #dialog [class.wide]="wide()" [class.centered]="centered()" [attr.aria-labelledby]="titleId" [attr.aria-describedby]="subtitleId"
       (cancel)="cancel($event)">
@@ -10,6 +13,7 @@ import { afterNextRender, Component, DestroyRef, ElementRef, inject, input, outp
         <button class="close-button" type="button" aria-label="Cerrar panel" (click)="dismissed.emit()" [disabled]="busy()">×</button>
       </header>
       <ng-content />
+      <app-toast-outlet [scope]="titleId" />
     </dialog>
   `,
   styleUrl: './side-panel.css',
@@ -29,8 +33,14 @@ export class SidePanel {
   constructor() {
     // Native modal dialogs isolate background controls and restore the opener's focus.
     let element: HTMLDialogElement | undefined;
-    afterNextRender(() => { element = this.dialog().nativeElement; element.showModal(); });
-    inject(DestroyRef).onDestroy(() => element?.close());
+    let releaseScope: (() => void) | undefined;
+    const toast = inject(ToastService);
+    afterNextRender(() => {
+      element = this.dialog().nativeElement;
+      element.showModal();
+      releaseScope = toast.activate(this.titleId);
+    });
+    inject(DestroyRef).onDestroy(() => { releaseScope?.(); element?.close(); });
   }
 
   /** Prevent Escape from closing the panel while a mutation is in flight. */

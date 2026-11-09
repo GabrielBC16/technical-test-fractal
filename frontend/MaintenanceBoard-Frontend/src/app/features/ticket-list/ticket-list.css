@@ -1,0 +1,32 @@
+.list-content { padding: 32px; color: #252d36; }
+.page-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+h1 { margin: 0; font-size: 28px; line-height: 1.25; font-weight: 600; }
+.page-heading p { margin: 10px 0 0; color: #5d6d85; font-size: 13px; }
+.primary,.secondary { flex-shrink: 0; padding: 13px 18px; border: 1px solid #d9dfe7; border-radius: 8px; background: white; color: #252d36; font-size: 13px; font-weight: 600; }
+.primary { background: #f5ab00; border-color: #f5ab00; }
+button:disabled { cursor: wait; opacity: .6; }
+.filters { display: flex; align-items: flex-end; gap: 12px; padding: 20px; border: 1px solid #d9dfe7; border-radius: 12px; background: white; }
+label { display: grid; gap: 8px; flex: 1; color: #5d6d85; font-size: 12px; }
+input,select { min-width: 0; width: 100%; padding: 12px; border: 1px solid #d9dfe7; border-radius: 8px; background: white; color: #252d36; font: inherit; font-size: 13px; }
+.helper { margin: 10px 0 24px; color: #5d6d85; font-size: 12px; }
+.filter-error { margin: 12px 0; color: #a82039; font-size: 13px; }
+.list-toolbar { display: flex; align-items: center; gap: 12px; margin: 24px 0 12px; }
+.search { max-width: 400px; }
+.result-count { margin: 16px 0; color: #5d6d85; font-size: 12px; }
+.table-container { overflow-x: auto; border: 1px solid #d9dfe7; border-radius: 12px; background: white; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; text-align: left; font-size: 12px; }
+th { padding: 16px; background: #e9edf2; color: #536176; font-weight: 600; }
+th:first-child { width: 32%; }
+th:nth-child(2) { width: 15%; }
+th:last-child { width: 18%; }
+td { padding: 18px 16px; border-top: 1px solid #e9edf2; vertical-align: top; color: #5d6d85; overflow-wrap: anywhere; }
+.ticket-link { padding: 0; border: 0; background: transparent; color: #252d36; text-align: left; font-size: 14px; line-height: 1.5; font-weight: 600; }
+.ticket-link:hover { text-decoration: underline; }
+.ticket-description { margin: 8px 0 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.5; }
+.status-badge { display: inline-block; padding: 6px 10px; border-radius: 99px; background: #e8ecf1; color: #536176; font-weight: 600; white-space: nowrap; }
+.status-badge[data-status="InProgress"] { background: #fff0c9; color: #925800; }
+.status-badge[data-status="Closed"] { background: #e3f5ec; color: #176949; }
+.status-badge[data-status="Rejected"] { background: #fbe9ed; color: #b4233e; }
+.feedback { display: flex; min-height: 280px; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 32px; border: 1px solid #d9dfe7; border-radius: 12px; background: white; color: #5d6d85; text-align: center; }
+.feedback h2,.feedback p { margin: 0; }
+.feedback h2 { color: #252d36; font-size: 20px; font-weight: 600; }

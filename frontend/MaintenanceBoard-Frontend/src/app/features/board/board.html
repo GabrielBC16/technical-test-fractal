@@ -2,9 +2,8 @@
 <main id="main-content" class="board-content">
       <div class="page-heading">
         <div><h1>Tablero de tickets de mantenimiento</h1><p>Prioriza incidencias y acompaña cada ticket hasta su cierre.</p></div>
-        <button class="new-ticket" type="button" (click)="notice.set(''); panel.set({ kind: 'create' })"><span aria-hidden="true">+</span> Nuevo ticket</button>
+        <button class="new-ticket" type="button" (click)="panel.set({ kind: 'create' })"><span aria-hidden="true">+</span> Nuevo ticket</button>
       </div>
-      @if (notice()) { <p class="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{{ notice() }}</p> }
       <section class="summary-grid" aria-label="Resumen de tickets">
         @for (column of columns; track column.key) {
           <div class="summary-card"><span class="summary-number" [attr.data-status]="column.status">{{ store.board() ? (store.board()![column.key].length < 10 ? '0' : '') + store.board()![column.key].length : '—' }}</span><span>{{ column.summary }}</span></div>

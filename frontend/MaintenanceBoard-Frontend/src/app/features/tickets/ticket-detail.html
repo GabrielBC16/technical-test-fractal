@@ -1,5 +1,4 @@
 <app-side-panel [title]="'Ticket #' + ticketId()" [subtitle]="details() ? 'Creado el ' + localDate(details()!.ticket.createdAtUtc) : 'Detalle del ticket'" [wide]="true" [busy]="actionBusy()" (dismissed)="dismissed.emit()">
-  @if (notice()) { <p class="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{{ notice() }}</p> }
   @if (loading()) {
     <div class="feedback" role="status">Cargando detalle del ticket…</div>
   } @else if (error()) {

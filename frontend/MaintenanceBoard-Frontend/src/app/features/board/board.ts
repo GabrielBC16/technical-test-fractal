@@ -5,6 +5,7 @@ import { BoardStore } from './board.store';
 import { TicketCard } from './ticket-card';
 import { CreateTicket } from '../tickets/create-ticket';
 import { TicketDetail } from '../tickets/ticket-detail';
+import { ToastService } from '../../core/notifications/toast.service';
 
 const COLUMNS = [
   { key: 'pending', status: 'Pending', label: 'Pendiente', summary: 'Pendientes' },
@@ -26,7 +27,7 @@ export class Board {
   protected readonly status = signal('');
   protected readonly assignee = signal('');
   protected readonly panel = signal<{ kind: 'create' } | { kind: 'detail'; ticketId: number } | null>(null);
-  protected readonly notice = signal('');
+  private readonly toast = inject(ToastService);
 
   protected readonly assignees = computed(() => {
     const board = this.store.board();
@@ -65,7 +66,7 @@ export class Board {
 
   /** Display the new server ticket and refresh the authoritative board after creation. */
   protected ticketCreated(ticketId: number): void {
-    this.notice.set(`Ticket #${ticketId} creado correctamente.`);
+    this.toast.show(`Ticket #${ticketId} creado correctamente.`);
     this.clearFilters();
     this.store.refresh();
     this.panel.set({ kind: 'detail', ticketId });

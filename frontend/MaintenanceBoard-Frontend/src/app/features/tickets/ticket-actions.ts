@@ -8,6 +8,7 @@ import { SessionService } from '../../core/auth/session.service';
 import { AssignableUser, TicketListItem, TransitionTicketRequest } from '../../core/tickets/ticket.models';
 import { TicketsApiService } from '../../core/tickets/tickets-api.service';
 import { SidePanel } from '../../shared/side-panel/side-panel';
+import { ToastService } from '../../core/notifications/toast.service';
 
 type TransitionTarget = TransitionTicketRequest['newStatus'];
 
@@ -46,6 +47,7 @@ export class TicketActions {
     }
   });
   private readonly api = inject(TicketsApiService);
+  private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly builder = inject(FormBuilder);
   private usersRequest?: Subscription;
@@ -165,6 +167,7 @@ export class TicketActions {
       error: (error: unknown) => {
         this.conflict.set(error instanceof HttpErrorResponse && error.status === 409);
         this.error.set(apiErrorMessage(error));
+        this.toast.show(apiErrorMessage(error), 'error');
       },
     });
   }

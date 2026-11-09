@@ -6,6 +6,7 @@ import { apiErrorMessage } from '../../core/api/api-error';
 import { SessionService } from '../../core/auth/session.service';
 import { TicketsApiService } from '../../core/tickets/tickets-api.service';
 import { SidePanel } from '../../shared/side-panel/side-panel';
+import { ToastService } from '../../core/notifications/toast.service';
 
 @Component({
   selector: 'app-create-ticket',
@@ -20,6 +21,7 @@ export class CreateTicket {
   protected readonly busy = signal(false);
   protected readonly error = signal('');
   private readonly api = inject(TicketsApiService);
+  private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly form = inject(FormBuilder).nonNullable.group({
     title: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(200)]],
@@ -40,7 +42,11 @@ export class CreateTicket {
       finalize(() => { this.busy.set(false); this.form.enable(); }),
     ).subscribe({
       next: response => this.created.emit(response.ticketId),
-      error: (error: unknown) => this.error.set(apiErrorMessage(error)),
+      error: (error: unknown) => {
+        const message = apiErrorMessage(error);
+        this.error.set(message);
+        this.toast.show(message, 'error');
+      },
     });
   }
 }

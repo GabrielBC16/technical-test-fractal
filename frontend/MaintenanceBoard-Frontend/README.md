@@ -82,7 +82,7 @@ The desktop shell follows the exported board layout, adapted to three backend gr
 - Real assignee initials, additional assignee counts, and browser-local creation dates are displayed.
 - Loading, empty, no-match, and Spanish error states are included.
 - New-ticket creation opens a desktop side panel; the entire ticket card opens its details and activity history.
-- Date-range filtering, rejected-ticket listing, and responsive behavior remain in later milestones.
+- Date-range filtering and rejected tickets are available in the separate ticket list; responsive behavior remains deferred.
 - Demo ticket titles and descriptions remain exactly as returned by the API, including English seed content.
 
 ## Milestone 1 validation
@@ -167,3 +167,33 @@ No actor IDs are sent in mutation bodies.
 - Tests use Angular's HTTP testing backend; no live ticket data was mutated.
 - Native dialogs still require a browser smoke check. The previously declined API startup was not retried.
 - The owner's login, card styles, backend, and database work remain untouched and outside this milestone commit.
+
+## Ticket list and notifications
+
+The sidebar links to the board and the authenticated `/tickets` list.
+The list calls `GET /api/tickets` and includes all statuses, including Rejected.
+State and date filters are explicitly applied to the server query; title/ID search filters the returned snapshot.
+Retry and refresh use the last applied query, not unsaved field edits.
+Superseded requests are canceled. Loading, error, empty, and no-match feedback are in Spanish.
+Ticket details and creation reuse the existing panels; successful changes reload the current list query.
+
+Date inputs represent inclusive local calendar days. The frontend converts the start to local midnight in UTC
+and the end to the next local midnight in UTC, matching the API's exclusive `to` boundary.
+The conversion advances the calendar date rather than adding 24 hours, accounting for local DST changes.
+Reversed ranges and impossible calendar days are rejected before sending a request.
+Optional `status`, `from`, and `to` parameters are omitted when unset.
+
+Toasts provide mutation success and failure feedback in Spanish.
+The shared outlet follows the topmost native dialog so feedback stays in its active focus layer.
+Success messages expire after seven seconds; errors remain until dismissed, with at most three messages at once.
+Inline validation/error details remain available in the forms.
+The list uses the desktop shell's existing visual palette and spacing; a separate list frame was not supplied.
+
+## Milestone 5 validation
+
+- Production build passed within the configured budgets.
+- All 23 basic checks passed across 7 test files.
+- New checks cover rejected-ticket rendering, authenticated list queries, exact filter parameters,
+  inclusive calendar dates, month-end/leap-day boundaries, invalid ranges, retry, and notification lifecycle.
+- These are HTTP/UI unit checks. Live API and browser verification remain pending; no backend process was started.
+- The owner's login HTML, card CSS, backend, and database changes were preserved and excluded from this commit.

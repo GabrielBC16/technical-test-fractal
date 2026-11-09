@@ -1,18 +1,21 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ROLE_LABELS } from '../core/auth/session.models';
 import { SessionService } from '../core/auth/session.service';
 import { initials } from '../core/tickets/ticket-presentation';
 
 @Component({
   selector: 'app-desktop-shell',
-  imports: [RouterLink],
+  imports: [RouterLink, RouterLinkActive],
   template: `
     <div class="desktop-shell">
       <aside class="sidebar" aria-label="Navegación principal">
         <a class="brand" routerLink="/board" aria-label="Fractal, inicio">FRACTAL</a>
         <p class="sidebar-subtitle">Solicitudes y<br />Mantenimientos</p>
-        <nav><a class="active-nav" routerLink="/board" aria-current="page"><span aria-hidden="true">▦</span> Tickets</a></nav>
+        <nav>
+          <a class="nav-link" routerLink="/board" routerLinkActive="active-nav" ariaCurrentWhenActive="page"><span aria-hidden="true">▦</span> Tablero</a>
+          <a class="nav-link" routerLink="/tickets" routerLinkActive="active-nav" ariaCurrentWhenActive="page"><span aria-hidden="true">≡</span> Listado de tickets</a>
+        </nav>
         <p class="workspace-label">TU ESPACIO DE TRABAJO</p>
         <p class="sidebar-description">Gestiona incidencias y consulta cada paso de su atención.</p>
         <div class="sidebar-note"><strong>Cada cambio<br />cuenta</strong><p>El historial conserva los estados, comentarios y asignaciones.</p></div>
