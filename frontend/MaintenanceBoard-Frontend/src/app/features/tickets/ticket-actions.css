@@ -1,0 +1,21 @@
+:host { display: block; margin-top: 18px; }
+h5,label { display: block; margin: 18px 0 10px; font-size: 12px; font-weight: 600; }
+label:first-child { margin-top: 0; }
+.add-operator { padding: 7px 10px; border: 1px solid #d9dfe7; border-radius: 6px; background: white; color: #006b90; font-size: 12px; font-weight: 600; }
+.button-row { display: flex; gap: 12px; margin-top: 18px; }
+.primary,.secondary { padding: 12px 18px; border: 1px solid #d9dfe7; border-radius: 8px; background: white; color: #252d36; font-size: 13px; font-weight: 600; }
+.primary { flex: 1; border-color: #f5ab00; background: #f5ab00; }
+.danger { border-color: #b02f48; background: #b02f48; color: white; }
+.full-width { width: 100%; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+textarea,select { display: block; width: 100%; padding: 13px 12px; border: 1px solid #d9dfe7; border-radius: 8px; background: white; color: #252d36; font: inherit; font-size: 13px; }
+textarea { resize: vertical; }
+textarea::placeholder { color: #5d6d85; }
+[aria-invalid="true"] { border-color: #b02f48; }
+.helper { margin: 10px 0; color: #5d6d85; font-size: 12px; line-height: 1.5; }
+.field-error { margin: 6px 0 12px; color: #a82039; font-size: 12px; }
+.action-notice { margin-top: 24px; padding: 14px 12px; border-radius: 8px; background: #e5f3fa; color: #006b90; font-size: 13px; }
+.action-notice p { margin: 8px 0 0; line-height: 1.5; font-size: 12px; }
+.rejection { background: #fbe9ed; color: #a82039; }
+.error-message { margin: 12px 0; padding: 12px; border-radius: 8px; background: #fff0f2; color: #a82039; font-size: 13px; }
+.error-message p { margin: 0 0 8px; }

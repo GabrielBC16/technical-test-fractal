@@ -1,0 +1,73 @@
+<section class="ticket-actions" aria-label="Acciones del ticket" [attr.aria-busy]="busy()">
+  @if (session.canManageTickets() && open()) {
+    @if (ticket().assignees.length < 3) {
+      <button class="add-operator" type="button" (click)="openAssignment()" [disabled]="busy() || conflict()">
+        {{ additional() ? '+ Agregar operador' : 'Asignar operador' }}
+      </button>
+    } @else { <p class="helper">Máximo de tres operadores asignados.</p> }
+    <h5>Actualizar estado</h5>
+    <div class="button-row">
+      @if (ticket().status === 'Pending') {
+        <button class="primary" type="button" (click)="openTransition('InProgress')" [disabled]="busy() || conflict() || ticket().assignees.length === 0">Iniciar atención</button>
+      } @else {
+        <button class="primary" type="button" (click)="openTransition('Closed')" [disabled]="busy() || conflict()">Cerrar ticket</button>
+      }
+      <button class="secondary" type="button" (click)="openTransition('Rejected')" [disabled]="busy() || conflict()">Rechazar</button>
+    </div>
+    @if (ticket().status === 'Pending' && !ticket().assignees.length) { <p class="helper">Asigna un operador antes de iniciar la atención.</p> }
+  }
+  @if (canComment()) {
+    <form [formGroup]="commentForm" (ngSubmit)="addComment()" class="comment-form">
+      <label for="new-comment">Agregar comentario</label>
+      <textarea id="new-comment" formControlName="comment" rows="3" maxlength="4000" placeholder="Escribe una actualización para el equipo..." [readOnly]="busy() || conflict()" [attr.aria-invalid]="commentForm.controls.comment.touched && commentForm.controls.comment.invalid" aria-describedby="comment-error"></textarea>
+      <p id="comment-error" class="field-error">@if (commentForm.controls.comment.touched && commentForm.controls.comment.invalid) { Escribe un comentario de hasta 4000 caracteres. }</p>
+      <button class="secondary full-width" type="submit" [disabled]="busy() || conflict()">{{ busy() && !mode() ? 'Publicando…' : 'Publicar comentario' }}</button>
+    </form>
+  }
+  @if (error() && !mode()) {
+    <div class="error-message" role="alert"><p>{{ error() }}</p>@if (conflict()) { <button class="secondary" type="button" (click)="refreshRequested.emit()">Actualizar ticket</button><p class="helper">Se recargará el ticket y se descartará el formulario pendiente.</p> }</div>
+  }
+</section>
+
+@if (mode()) {
+  <app-side-panel [title]="dialogTitle()" [centered]="true" [busy]="busy()" (dismissed)="closeAction()"
+    [subtitle]="mode() === 'assignment' ? 'El reportante y los responsables son independientes.' : 'El cambio quedará registrado en el historial.'">
+    @if (mode() === 'assignment') {
+      <form [formGroup]="assignmentForm" (ngSubmit)="assign()">
+        @if (usersLoading()) { <p role="status" class="helper">Cargando operadores…</p> }
+        @else if (usersError()) { <div role="alert" class="error-message"><p>{{ usersError() }}</p><button type="button" class="secondary" (click)="loadUsers()">Reintentar</button></div> }
+        @else {
+          <label for="assigned-user">Operador</label>
+          <select id="assigned-user" formControlName="assignedUserId" [attr.disabled]="busy() ? '' : null" [attr.aria-invalid]="assignmentForm.controls.assignedUserId.touched && assignmentForm.controls.assignedUserId.invalid" aria-describedby="assigned-user-error">
+            <option value="">Selecciona un operador</option>
+            @for (user of availableUsers(); track user.userId) { <option [value]="user.userId">{{ user.names }} {{ user.lastNames }} · {{ user.role === 'Supervisor' ? 'Supervisor' : 'Operador' }}</option> }
+          </select>
+          @if (!availableUsers().length) { <p class="helper">No hay operadores disponibles para agregar.</p> }
+          <p id="assigned-user-error" class="field-error">@if (assignmentForm.controls.assignedUserId.touched && assignmentForm.controls.assignedUserId.invalid) { Selecciona un operador. }</p>
+          <label for="assignment-reason">Justificación {{ additional() ? '(obligatoria)' : '(opcional)' }}</label>
+          <textarea id="assignment-reason" formControlName="justification" rows="3" maxlength="2000" [readOnly]="busy()" placeholder="Explica por qué se requiere este operador..." [attr.aria-invalid]="assignmentForm.controls.justification.touched && assignmentForm.controls.justification.invalid" aria-describedby="assignment-reason-error"></textarea>
+          <p id="assignment-reason-error" class="field-error">@if (assignmentForm.controls.justification.touched && assignmentForm.controls.justification.invalid) { Ingresa una justificación de hasta 2000 caracteres. }</p>
+          <p class="helper">La justificación corresponde únicamente al operador que estás agregando.</p>
+        }
+        @if (error()) { <div class="error-message" role="alert"><p>{{ error() }}</p></div> }
+        @if (conflict()) {
+          <button class="secondary full-width" type="button" (click)="refreshRequested.emit()">Actualizar ticket</button>
+          <p class="helper">Se recargará el ticket y se descartará el formulario pendiente.</p>
+        }
+        <footer class="button-row"><button class="secondary" type="button" (click)="closeAction()" [disabled]="busy()">Cancelar</button><button class="primary" type="submit" [disabled]="busy() || conflict() || usersLoading() || !!usersError() || !availableUsers().length">{{ busy() ? 'Guardando…' : 'Guardar asignación' }}</button></footer>
+      </form>
+    } @else {
+      <form [formGroup]="transitionForm" (ngSubmit)="transition()">
+        @if (mode() !== 'InProgress') {
+          <label for="transition-text">{{ mode() === 'Closed' ? 'Causa del problema' : 'Motivo del rechazo' }} (obligatorio)</label>
+          <textarea id="transition-text" formControlName="text" rows="4" maxlength="4000" [readOnly]="busy()" [attr.aria-invalid]="transitionForm.controls.text.touched && transitionForm.controls.text.invalid" aria-describedby="transition-error"></textarea>
+          <p id="transition-error" class="field-error">@if (transitionForm.controls.text.touched && transitionForm.controls.text.invalid) { Ingresa {{ mode() === 'Closed' ? 'la causa' : 'el motivo' }} (máximo 4000 caracteres). }</p>
+          <div class="action-notice" [class.rejection]="mode() === 'Rejected'"><strong>Esta acción finaliza el ticket</strong><p>{{ mode() === 'Closed' ? 'El cierre y su causa quedarán registrados en el historial.' : 'El motivo quedará visible en el historial del ticket.' }}</p></div>
+        } @else { <p class="helper">El ticket pasará de Pendiente a En progreso.</p> }
+        @if (error()) { <div class="error-message" role="alert"><p>{{ error() }}</p></div> }
+        @if (conflict()) { <button class="secondary full-width" type="button" (click)="refreshRequested.emit()">Actualizar ticket</button><p class="helper">Se recargará el ticket y se descartará el formulario pendiente.</p> }
+        <footer class="button-row"><button class="secondary" type="button" (click)="closeAction()" [disabled]="busy()">Cancelar</button><button class="primary" [class.danger]="mode() === 'Rejected'" type="submit" [disabled]="busy() || conflict()">{{ busy() ? 'Guardando…' : mode() === 'Closed' ? 'Confirmar cierre' : mode() === 'Rejected' ? 'Confirmar rechazo' : 'Confirmar inicio' }}</button></footer>
+      </form>
+    }
+  </app-side-panel>
+}

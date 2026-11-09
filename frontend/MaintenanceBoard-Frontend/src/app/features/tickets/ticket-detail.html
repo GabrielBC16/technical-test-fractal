@@ -1,4 +1,5 @@
-<app-side-panel [title]="'Ticket #' + ticketId()" [subtitle]="details() ? 'Creado el ' + localDate(details()!.ticket.createdAtUtc) : 'Detalle del ticket'" [wide]="true" (dismissed)="dismissed.emit()">
+<app-side-panel [title]="'Ticket #' + ticketId()" [subtitle]="details() ? 'Creado el ' + localDate(details()!.ticket.createdAtUtc) : 'Detalle del ticket'" [wide]="true" [busy]="actionBusy()" (dismissed)="dismissed.emit()">
+  @if (notice()) { <p class="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{{ notice() }}</p> }
   @if (loading()) {
     <div class="feedback" role="status">Cargando detalle del ticket…</div>
   } @else if (error()) {
@@ -24,6 +25,7 @@
             @if (user.justification) { <p class="justification"><strong>{{ user.names }} {{ user.lastNames }}:</strong> {{ user.justification }}</p> }
           }
           @if (data.ticket.status === 'Closed' || data.ticket.status === 'Rejected') { <p class="terminal-note">Este ticket está finalizado.</p> }
+          <app-ticket-actions [ticket]="data.ticket" (changed)="actionCompleted($event)" (refreshRequested)="load()" (busyChanged)="actionBusy.set($event)" />
         </section>
         <section aria-labelledby="history-title">
           <h4 id="history-title">Historial de actividad</h4><p class="helper">Eventos y comentarios del ticket</p>

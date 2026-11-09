@@ -64,3 +64,25 @@ export interface TicketDetails {
   cause: string | null;
   history: TicketHistoryItem[];
 }
+
+export interface AssignableUser {
+  userId: number;
+  userName: string;
+  names: string;
+  lastNames: string;
+  role: 'Operator' | 'Supervisor';
+  isActive: boolean;
+  createdAtUtc: string;
+}
+
+export interface AssignTicketRequest {
+  assignedUserId: number;
+  justification?: string;
+}
+
+export interface TransitionTicketRequest {
+  expectedStatus: TicketStatus;
+  newStatus: 'InProgress' | 'Closed' | 'Rejected';
+  comment?: string;
+  cause?: string;
+}

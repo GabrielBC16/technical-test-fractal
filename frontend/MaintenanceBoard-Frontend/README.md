@@ -115,7 +115,7 @@ After HTTP 201, the returned ticket ID opens its detail and the board is refresh
 Ticket titles are keyboard-accessible buttons. The detail panel fetches `GET /api/tickets/{id}`
 and displays reporter, status, description, cause, all assignees, justifications, and history.
 History is shown newest first without changing the API response. Event and status labels are in Spanish.
-Cause and activity remain read-only here; assignments, transitions, and posting comments belong to milestone 4.
+History remains read-only. The detail now exposes the assignment, transition, and comment actions described below.
 Detail reads are canceled on selection change or component destruction; failed reads can be retried.
 
 The reusable side panel uses native `dialog.showModal()` for focus isolation and Escape behavior.
@@ -133,3 +133,37 @@ The create and detail layouts follow the exported PDFs approved by the owner; re
   No live create request or browser review of this milestone's panels was performed.
 - The owner's login HTML, ticket-card CSS, and pre-existing backend/database changes were preserved
   and excluded from the milestone commit.
+
+## Ticket actions
+
+The owner confirmed that the first operator is selected manually, rather than automatically at creation.
+The first assignment accepts an optional justification. Each additional assignment requires its own
+non-whitespace justification (maximum 2000 characters). The compact `+ Agregar operador` button
+registers one additional operator at a time through `POST /api/tickets/{id}/assignments`.
+Already assigned users are excluded; the UI enforces the API limit of three distinct assignees.
+No removal or replacement action is offered. Assignment is available only on Pending/InProgress tickets
+to Operators and Supervisors. Eligible users are loaded lazily through the restricted users endpoint.
+
+Starting attention requires an assignee. Closing requires a cause; rejection requires a reason.
+Each transition sends the displayed `expectedStatus` and the allowed target.
+Cause, rejection reason, and comments have a 4000-character limit.
+Terminal tickets do not expose assignment or status actions.
+Requesters may comment only on tickets they reported; Operators and Supervisors may comment on any ticket.
+Comments remain available on terminal tickets when the user has permission.
+
+Successful mutations reload detail/history and refresh the board. Pending mutations block duplicate
+submissions and panel dismissal. Failed form values are retained. HTTP 409 blocks further mutations
+until the user selects `Actualizar ticket`; the interface explains that refreshing discards the pending form.
+Native centered dialogs reuse the side-panel focus behavior with unique accessible labels for nested dialogs.
+The API remains responsible for authorization, active-user checks, workflow validation, and atomicity.
+No actor IDs are sent in mutation bodies.
+
+## Milestone 4 validation
+
+- Production build passed within the configured budgets.
+- All 18 basic checks passed across 5 test files.
+- Added HTTP/UI checks for first assignment, required per-operator justification, duplicate exclusion,
+  cause/rejection validation, expectedStatus, conflict refresh, requester ownership, and terminal/assignment limits.
+- Tests use Angular's HTTP testing backend; no live ticket data was mutated.
+- Native dialogs still require a browser smoke check. The previously declined API startup was not retried.
+- The owner's login, card styles, backend, and database work remain untouched and outside this milestone commit.

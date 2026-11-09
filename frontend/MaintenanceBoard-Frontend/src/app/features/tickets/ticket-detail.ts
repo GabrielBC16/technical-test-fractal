@@ -6,16 +6,20 @@ import { TicketDetails, TicketHistoryItem, TICKET_STATUS_LABELS } from '../../co
 import { initials, localTicketDate } from '../../core/tickets/ticket-presentation';
 import { TicketsApiService } from '../../core/tickets/tickets-api.service';
 import { SidePanel } from '../../shared/side-panel/side-panel';
+import { TicketActions } from './ticket-actions';
 
 @Component({
   selector: 'app-ticket-detail',
-  imports: [SidePanel],
+  imports: [SidePanel, TicketActions],
   templateUrl: './ticket-detail.html',
   styleUrl: './ticket-detail.css',
 })
 export class TicketDetail implements OnChanges {
   readonly ticketId = input.required<number>();
   readonly dismissed = output<void>();
+  readonly changed = output<void>();
+  protected readonly actionBusy = signal(false);
+  protected readonly notice = signal('');
   protected readonly details = signal<TicketDetails | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal('');
@@ -35,6 +39,7 @@ export class TicketDetail implements OnChanges {
   /** Cancel superseded reads and retain an explicit retry path for missing or failed tickets. */
   protected load(): void {
     this.request?.unsubscribe();
+    this.actionBusy.set(false);
     this.details.set(null);
     this.loading.set(true);
     this.error.set('');
@@ -42,6 +47,13 @@ export class TicketDetail implements OnChanges {
       next: details => { this.details.set(details); this.loading.set(false); },
       error: (error: unknown) => { this.error.set(apiErrorMessage(error)); this.loading.set(false); },
     });
+  }
+
+  /** Reload server history and notify the board after an acknowledged mutation. */
+  protected actionCompleted(message: string): void {
+    this.notice.set(message);
+    this.changed.emit();
+    this.load();
   }
 
   /** Translate history types and transition targets without changing their source data. */

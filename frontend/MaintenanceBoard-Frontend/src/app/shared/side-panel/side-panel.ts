@@ -3,10 +3,10 @@ import { afterNextRender, Component, DestroyRef, ElementRef, inject, input, outp
 @Component({
   selector: 'app-side-panel',
   template: `
-    <dialog #dialog [class.wide]="wide()" aria-labelledby="panel-title" aria-describedby="panel-subtitle"
+    <dialog #dialog [class.wide]="wide()" [class.centered]="centered()" [attr.aria-labelledby]="titleId" [attr.aria-describedby]="subtitleId"
       (cancel)="cancel($event)">
       <header class="panel-header">
-        <div><h2 id="panel-title">{{ title() }}</h2><p id="panel-subtitle">{{ subtitle() }}</p></div>
+        <div><h2 [id]="titleId">{{ title() }}</h2><p [id]="subtitleId">{{ subtitle() }}</p></div>
         <button class="close-button" type="button" aria-label="Cerrar panel" (click)="dismissed.emit()" [disabled]="busy()">×</button>
       </header>
       <ng-content />
@@ -15,9 +15,13 @@ import { afterNextRender, Component, DestroyRef, ElementRef, inject, input, outp
   styleUrl: './side-panel.css',
 })
 export class SidePanel {
+  private static nextId = 0;
+  protected readonly titleId = `panel-title-${SidePanel.nextId++}`;
+  protected readonly subtitleId = `${this.titleId}-subtitle`;
   readonly title = input.required<string>();
   readonly subtitle = input('');
   readonly wide = input(false);
+  readonly centered = input(false);
   readonly busy = input(false);
   readonly dismissed = output<void>();
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');

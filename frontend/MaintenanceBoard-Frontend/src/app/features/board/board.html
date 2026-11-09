@@ -51,6 +51,6 @@
   @if (selected.kind === 'create') {
     <app-create-ticket (dismissed)="panel.set(null)" (created)="ticketCreated($event)" />
   } @else {
-    <app-ticket-detail [ticketId]="selected.ticketId" (dismissed)="panel.set(null)" />
+    <app-ticket-detail [ticketId]="selected.ticketId" (dismissed)="panel.set(null)" (changed)="store.refresh()" />
   }
 }
