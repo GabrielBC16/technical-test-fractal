@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="MaintenanceBoard.Api/MaintenanceBoard.Api.csproj" />
+  <Project Path="MaintenanceBoard.Application/MaintenanceBoard.Application.csproj" />
+  <Project Path="MaintenanceBoard.Domain/MaintenanceBoard.Domain.csproj" />
+  <Project Path="MaintenanceBoard.Infraestructure/MaintenanceBoard.Infraestructure.csproj" />
+  <Project Path="MaintenanceBoard.Tests/MaintenanceBoard.Tests.csproj" />
+</Solution>
