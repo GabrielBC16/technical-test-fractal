@@ -3,12 +3,14 @@ param(
     [Parameter(Mandatory = $true)] [string] $Server,
     [Parameter(Mandatory = $true)] [string] $Database,
     [switch] $UseIntegratedSecurity,
+    [switch] $TrustServerCertificate,
     [switch] $SkipSecurity
 )
 
 $ErrorActionPreference = 'Stop'
 $sqlcmd = Get-Command sqlcmd -ErrorAction Stop
 $arguments = @('-S', $Server, '-d', $Database, '-b', '-r', '1')
+if ($TrustServerCertificate) { $arguments += '-C' }
 if ($UseIntegratedSecurity) {
     $arguments += '-E'
 } else {

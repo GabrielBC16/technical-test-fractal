@@ -1,6 +1,13 @@
 -- Run only in an isolated validation database as its deployment owner.
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
+SET ANSI_NULLS ON;
+SET ANSI_PADDING ON;
+SET ANSI_WARNINGS ON;
+SET ARITHABORT ON;
+SET CONCAT_NULL_YIELDS_NULL ON;
+SET QUOTED_IDENTIFIER ON;
+SET NUMERIC_ROUNDABORT OFF;
 IF DB_NAME() NOT LIKE N'MaintenanceBoard[_]Validation%'
     THROW 51000, N'Use an isolated database named MaintenanceBoard_Validation followed by a suffix.', 1;
 GO
@@ -24,7 +31,8 @@ BEGIN
         DECLARE @Message nvarchar(2048) = CONCAT(N'Expected SQL error ', @ExpectedError, N'; received ', ERROR_NUMBER(), N': ', ERROR_MESSAGE());
         THROW 51000, @Message, 1;
     END CATCH;
-    THROW 51000, N'The statement unexpectedly succeeded.', 1;
+    DECLARE @UnexpectedMessage nvarchar(2048) = CONCAT(N'Expected SQL error ', @ExpectedError, N', but the statement succeeded: ', @Statement);
+    THROW 51000, @UnexpectedMessage, 1;
 END;
 GO
 

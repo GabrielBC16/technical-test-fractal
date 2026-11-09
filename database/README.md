@@ -38,6 +38,22 @@ Use `-SkipSecurity` to apply only schema, transition seeds, and procedures when 
 provisioning is managed separately. Azure SQL Database needs a platform-specific
 contained-user provisioning script; `004_api_security.sql` targets SQL Server.
 
+For the technical-test development setup, security provisioning may remain deferred:
+
+```powershell
+./database/Apply-Database.ps1 -Server '<sql-server-instance>' -Database '<database-name>' -UseIntegratedSecurity -SkipSecurity
+```
+
+For a local development server with a self-signed certificate, append
+`-TrustServerCertificate`. This opt-in switch is also available on the concurrent
+assignment test runner. Prefer a trusted certificate outside local development.
+
+Schema and procedure scripts explicitly set the SQL session options required by
+the filtered history index. Procedure definitions capture `QUOTED_IDENTIFIER ON`;
+the Unicode whitespace guard uses binary collation to match .NET whitespace checks.
+Reapply `001_schema.sql` and `003_ticket_procedures.sql` when updating an earlier
+bootstrap, using the same deployment identity. Existing ticket data is preserved.
+
 Reapplying the scripts preserves data, inserts missing transition seeds, replaces
 procedure/trigger definitions, and reapplies grants. It does not reconcile an older
 table definition, migrate a legacy `APP_USER` table, or rotate an existing login's

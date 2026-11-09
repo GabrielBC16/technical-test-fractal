@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="../MaintenanceBoard.Domain/MaintenanceBoard.Domain.csproj" />
     <ProjectReference Include="../MaintenanceBoard.Application/MaintenanceBoard.Application.csproj" />
+    <ProjectReference Include="../MaintenanceBoard.Infrastructure/MaintenanceBoard.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

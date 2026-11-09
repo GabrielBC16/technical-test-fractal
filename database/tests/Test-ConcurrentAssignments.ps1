@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)] [string] $Server,
-    [Parameter(Mandatory = $true)] [string] $Database
+    [Parameter(Mandatory = $true)] [string] $Database,
+    [switch] $TrustServerCertificate
 )
 
 $ErrorActionPreference = 'Stop'
@@ -10,6 +11,8 @@ if (-not $Database.StartsWith('MaintenanceBoard_Validation', [StringComparison]:
 }
 $sqlcmdPath = (Get-Command sqlcmd -ErrorAction Stop).Source
 $runId = [Guid]::NewGuid().ToString('N')
+$sqlArguments = @('-S', $Server, '-d', $Database, '-E', '-b', '-r', '1', '-h', '-1', '-W')
+if ($TrustServerCertificate) { $sqlArguments += '-C' }
 
 # Only the internally generated hexadecimal run ID is interpolated into fixture SQL.
 $fixture = @"
@@ -36,26 +39,28 @@ EXEC tickets.usp_AssignTicket @TicketId, @B, @A, N'Second specialist required.';
 SELECT CONCAT(@TicketId, N'|', @A, N'|', @C, N'|', @D);
 "@
 
-$fixtureResult = & $sqlcmdPath -S $Server -d $Database -E -b -r 1 -h -1 -W -Q $fixture 2>&1
+$fixtureResult = & $sqlcmdPath @sqlArguments -Q $fixture 2>&1
 if ($LASTEXITCODE -ne 0) { throw "Fixture setup failed: $fixtureResult" }
-$values = (($fixtureResult | ForEach-Object { "$_" }) -match '^\d+\|\d+\|\d+\|\d+$')
+$values = @($fixtureResult | ForEach-Object { "$_" } | Where-Object { $_ -match '^\d+\|\d+\|\d+\|\d+$' })
 if (@($values).Count -ne 1) { throw 'Could not read the validation fixture IDs.' }
 $ids = ([string] $values).Split('|') | ForEach-Object { [int] $_ }
 $ticketId, $actorId, $candidateOne, $candidateTwo = $ids
 
 $worker = {
-    param($SqlcmdPath, $ServerName, $DatabaseName, [int] $TicketId, [int] $ActorId, [int] $CandidateId)
+    param($SqlcmdPath, $ServerName, $DatabaseName, [int] $TicketId, [int] $ActorId, [int] $CandidateId, [bool] $TrustCertificate)
     # Keep the successful transaction open briefly so the other session contends
     # for the same parent lock before it can count existing assignments.
     $command = "WAITFOR DELAY '00:00:01'; BEGIN TRANSACTION; EXEC tickets.usp_AssignTicket $TicketId, $CandidateId, $ActorId, N'Concurrent additional assignment'; WAITFOR DELAY '00:00:03'; COMMIT TRANSACTION;"
-    $output = & $SqlcmdPath -S $ServerName -d $DatabaseName -E -b -r 1 -Q $command 2>&1
+    $workerArguments = @('-S', $ServerName, '-d', $DatabaseName, '-E', '-b', '-r', '1')
+    if ($TrustCertificate) { $workerArguments += '-C' }
+    $output = & $SqlcmdPath @workerArguments -Q $command 2>&1
     [pscustomobject] @{ ExitCode = $LASTEXITCODE; Output = ($output | Out-String) }
 }
 
 $jobs = @()
 try {
-    $jobs += Start-Job -ScriptBlock $worker -ArgumentList $sqlcmdPath, $Server, $Database, $ticketId, $actorId, $candidateOne
-    $jobs += Start-Job -ScriptBlock $worker -ArgumentList $sqlcmdPath, $Server, $Database, $ticketId, $actorId, $candidateTwo
+    $jobs += Start-Job -ScriptBlock $worker -ArgumentList $sqlcmdPath, $Server, $Database, $ticketId, $actorId, $candidateOne, ([bool] $TrustServerCertificate)
+    $jobs += Start-Job -ScriptBlock $worker -ArgumentList $sqlcmdPath, $Server, $Database, $ticketId, $actorId, $candidateTwo, ([bool] $TrustServerCertificate)
     $null = $jobs | Wait-Job -Timeout 45
     if (@($jobs | Where-Object State -ne 'Completed').Count -ne 0) {
         throw 'Concurrent assignment workers did not complete within 45 seconds.'
@@ -67,7 +72,7 @@ try {
     }
 
     $query = "SELECT CONCAT((SELECT COUNT(*) FROM tickets.TicketAssignment WHERE TicketId=$ticketId), N'|', (SELECT COUNT(*) FROM tickets.TicketHistory WHERE TicketId=$ticketId AND EventType=N'Assigned'));"
-    $counts = & $sqlcmdPath -S $Server -d $Database -E -b -h -1 -W -Q $query 2>&1
+    $counts = & $sqlcmdPath @sqlArguments -Q $query 2>&1
     if ($LASTEXITCODE -ne 0 -or -not (($counts | ForEach-Object { "$_".Trim() }) -contains '3|3')) {
         throw 'Concurrent writes must leave exactly three assignments and three assignment history events.'
     }
