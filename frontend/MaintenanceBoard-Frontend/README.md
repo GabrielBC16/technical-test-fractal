@@ -14,7 +14,8 @@ npm start
 ```
 
 Open http://localhost:4200. Configure `src/environments/environment.ts` to change
-the API base URL (default: http://localhost:5213/api). This public setting must never contain secrets.
+the API base URL. The owner's committed configuration currently targets the deployed Azure API.
+For a local backend, set it to http://localhost:5213/api. This public setting must never contain secrets.
 
 Start the existing API from `backend/MaintenanceBoard/MaintenanceBoard.Api`
 using the backend README. It requires a configured SQL Server connection and applied database schema.
@@ -82,7 +83,7 @@ The desktop shell follows the exported board layout, adapted to three backend gr
 - Real assignee initials, additional assignee counts, and browser-local creation dates are displayed.
 - Loading, empty, no-match, and Spanish error states are included.
 - New-ticket creation opens a desktop side panel; the entire ticket card opens its details and activity history.
-- Date-range filtering and rejected tickets are available in the separate ticket list; responsive behavior remains deferred.
+- Date-range filtering and rejected tickets are available in the separate ticket list; mobile layouts are described below.
 - Demo ticket titles and descriptions remain exactly as returned by the API, including English seed content.
 
 ## Milestone 1 validation
@@ -120,7 +121,7 @@ Detail reads are canceled on selection change or component destruction; failed r
 
 The reusable side panel uses native `dialog.showModal()` for focus isolation and Escape behavior.
 It closes on the close button or Escape and restores native focus behavior. Creation blocks both while submitting.
-The create and detail layouts follow the exported PDFs approved by the owner; responsive behavior remains deferred.
+The create and detail layouts follow the exported desktop PDFs approved by the owner, with mobile adaptations described below.
 
 ## Milestone 3 validation
 
@@ -197,3 +198,37 @@ The list uses the desktop shell's existing visual palette and spacing; a separat
   inclusive calendar dates, month-end/leap-day boundaries, invalid ranges, retry, and notification lifecycle.
 - These are HTTP/UI unit checks. Live API and browser verification remain pending; no backend process was started.
 - The owner's login HTML, card CSS, backend, and database changes were preserved and excluded from this commit.
+
+## Responsive layouts
+
+The desktop sidebar is retained on large screens and becomes visible horizontal navigation below 1024px.
+Below 768px, the board uses state buttons and a single status column with stacked cards.
+Filters wrap, controls keep usable touch targets, and detail content becomes a single column.
+Dialogs use the available viewport width; action confirmations keep safe screen margins.
+The ticket list scrolls horizontally inside its labeled, keyboard-focusable table region without widening the page.
+A skip link provides direct keyboard access to the main content.
+
+On mobile, New ticket navigates to the authenticated `/tickets/new` page rather than opening a drawer.
+The page reuses the existing form, validation, API client, and feedback.
+Its normal document flow supports mobile keyboards and scrolling.
+Navigation within the app is blocked while a creation request is pending.
+After creation, the app returns to the originating board/list and opens the returned ticket ID.
+Only the known board/list return destinations are accepted; detail-link IDs must be positive safe integers.
+Desktop creation remains a drawer.
+
+## Milestone 6 validation and remaining review
+
+- Production build passed within the configured budgets.
+- All 25 basic checks passed across 8 test files.
+- Added checks for mobile status controls, dedicated creation navigation, standalone rendering,
+  pending-request navigation protection, and safe return routing.
+- HTTP tests explicitly override API_BASE_URL, so the owner's deployed URL does not affect test requests.
+- Browser inspection at 390px confirmed the preserved login layout, but the deployed API returned a
+  server error during login. Authenticated screen inspection could not proceed.
+- A temporary local-data visual preview was proposed but its execution was not approved; no preview files were created.
+- Final visual checks of board, list, detail, and nested dialogs at mobile/tablet/desktop widths remain pending.
+- No live tickets were created or changed, no local backend was started, and the deployed configuration
+  and the owner's login/card styles remain unchanged.
+
+Implementation milestones are committed. The remaining release check is a browser smoke review against
+a functioning API, including native dialog focus/Escape behavior and authenticated layouts at 390px, 768px, and desktop widths.

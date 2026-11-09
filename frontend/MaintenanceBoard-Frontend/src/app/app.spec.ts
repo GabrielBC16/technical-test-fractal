@@ -1,3 +1,4 @@
+import { API_BASE_URL } from './core/api/api.config';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -11,7 +12,7 @@ const user: UserSession = { userId: 7, userName: 'operator', names: 'Ana', lastN
 describe('Session foundation', () => {
   beforeEach(() => {
     sessionStorage.clear();
-    TestBed.configureTestingModule({ providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({ providers: [{ provide: API_BASE_URL, useValue: 'http://localhost:5213/api' }, provideRouter([]), provideHttpClient(), provideHttpClientTesting()] });
   });
 
   afterEach(() => {

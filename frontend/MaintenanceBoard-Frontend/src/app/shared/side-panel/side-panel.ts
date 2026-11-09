@@ -1,20 +1,27 @@
 import { afterNextRender, Component, DestroyRef, ElementRef, inject, input, output, viewChild } from '@angular/core';
 import { ToastService } from '../../core/notifications/toast.service';
 import { ToastOutlet } from '../toast-outlet/toast-outlet';
+import { NgTemplateOutlet } from '@angular/common';
 
 @Component({
   selector: 'app-side-panel',
-  imports: [ToastOutlet],
+  imports: [ToastOutlet, NgTemplateOutlet],
   template: `
-    <dialog #dialog [class.wide]="wide()" [class.centered]="centered()" [attr.aria-labelledby]="titleId" [attr.aria-describedby]="subtitleId"
-      (cancel)="cancel($event)">
+    <ng-template #content>
       <header class="panel-header">
-        <div><h2 [id]="titleId">{{ title() }}</h2><p [id]="subtitleId">{{ subtitle() }}</p></div>
-        <button class="close-button" type="button" aria-label="Cerrar panel" (click)="dismissed.emit()" [disabled]="busy()">×</button>
+        <div>@if (pageMode()) { <h1 [id]="titleId">{{ title() }}</h1> } @else { <h2 [id]="titleId">{{ title() }}</h2> }<p [id]="subtitleId">{{ subtitle() }}</p></div>
+        <button class="close-button" type="button" [attr.aria-label]="pageMode() ? 'Volver' : 'Cerrar panel'" (click)="dismissed.emit()" [disabled]="busy()">×</button>
       </header>
       <ng-content />
       <app-toast-outlet [scope]="titleId" />
-    </dialog>
+    </ng-template>
+    @if (pageMode()) {
+      <section class="page-panel" [attr.aria-labelledby]="titleId"><ng-container [ngTemplateOutlet]="content" /></section>
+    } @else {
+      <dialog #dialog [class.wide]="wide()" [class.centered]="centered()" [attr.aria-labelledby]="titleId" [attr.aria-describedby]="subtitleId" (cancel)="cancel($event)">
+        <ng-container [ngTemplateOutlet]="content" />
+      </dialog>
+    }
   `,
   styleUrl: './side-panel.css',
 })
@@ -26,9 +33,10 @@ export class SidePanel {
   readonly subtitle = input('');
   readonly wide = input(false);
   readonly centered = input(false);
+  readonly pageMode = input(false);
   readonly busy = input(false);
   readonly dismissed = output<void>();
-  private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
+  private readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialog');
 
   constructor() {
     // Native modal dialogs isolate background controls and restore the opener's focus.
@@ -36,8 +44,8 @@ export class SidePanel {
     let releaseScope: (() => void) | undefined;
     const toast = inject(ToastService);
     afterNextRender(() => {
-      element = this.dialog().nativeElement;
-      element.showModal();
+      element = this.dialog()?.nativeElement;
+      element?.showModal();
       releaseScope = toast.activate(this.titleId);
     });
     inject(DestroyRef).onDestroy(() => { releaseScope?.(); element?.close(); });

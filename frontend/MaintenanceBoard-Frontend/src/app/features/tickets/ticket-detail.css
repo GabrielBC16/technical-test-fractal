@@ -23,3 +23,9 @@ h5 { margin: 22px 0 10px; font-size: 12px; font-weight: 600; }
 .feedback { display: flex; min-height: 300px; flex-direction: column; justify-content: center; align-items: center; gap: 16px; padding: 24px; color: #5d6d85; text-align: center; }
 .feedback h3,.feedback p { margin: 0; }
 .retry-button { padding: 12px 24px; border: 1px solid #d9dfe7; border-radius: 8px; background: white; color: #252d36; }
+
+@media (max-width: 767px) {
+  .detail-columns { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .ticket-title { font-size: 22px; }
+  .ticket-meta { align-items: flex-start; flex-direction: column; gap: 12px; }
+}

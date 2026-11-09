@@ -11,6 +11,9 @@ import { TicketsApiService } from '../../core/tickets/tickets-api.service';
 import { DesktopShell } from '../../layout/desktop-shell';
 import { CreateTicket } from '../tickets/create-ticket';
 import { TicketDetail } from '../tickets/ticket-detail';
+import { ViewportService } from '../../core/layout/viewport.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { linkedTicketId } from '../../core/tickets/ticket-presentation';
 
 type ListState = { status: 'loading' | 'ready' | 'error'; items: TicketListItem[]; error: string };
 
@@ -21,6 +24,9 @@ type ListState = { status: 'loading' | 'ready' | 'error'; items: TicketListItem[
   styleUrl: './ticket-list.css',
 })
 export class TicketList {
+  private readonly viewport = inject(ViewportService);
+  private readonly router = inject(Router);
+  private readonly linkedId = linkedTicketId(inject(ActivatedRoute).snapshot.queryParamMap.get('ticket'));
   private readonly api = inject(TicketsApiService);
   private readonly toast = inject(ToastService);
   private readonly reload = new Subject<TicketListFilter>();
@@ -28,7 +34,7 @@ export class TicketList {
   protected readonly state = signal<ListState>({ status: 'loading', items: [], error: '' });
   protected readonly filterError = signal('');
   protected readonly search = signal('');
-  protected readonly panel = signal<{ kind: 'create' } | { kind: 'detail'; ticketId: number } | null>(null);
+  protected readonly panel = signal<{ kind: 'create' } | { kind: 'detail'; ticketId: number } | null>(this.linkedId ? { kind: 'detail', ticketId: this.linkedId } : null);
   protected readonly labels = TICKET_STATUS_LABELS;
   protected readonly statuses = Object.keys(TICKET_STATUS_LABELS) as TicketStatus[];
   protected readonly localDate = localTicketDate;
@@ -99,5 +105,17 @@ export class TicketList {
   /** Show all assignees without requesting the privileged users endpoint. */
   protected assigneeNames(ticket: TicketListItem): string {
     return ticket.assignees.map(user => `${user.names} ${user.lastNames}`).join(', ') || 'Sin asignar';
+  }
+
+  /** Choose the dedicated creation route only at the mobile breakpoint. */
+  protected openCreate(): void {
+    if (this.viewport.isMobile()) void this.router.navigate(['/tickets/new'], { queryParams: { returnTo: 'tickets' } });
+    else this.panel.set({ kind: 'create' });
+  }
+
+  /** Clear a consumed detail link without adding a browser-history entry. */
+  protected closePanel(): void {
+    this.panel.set(null);
+    if (this.linkedId) void this.router.navigate([], { queryParams: { ticket: null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 }

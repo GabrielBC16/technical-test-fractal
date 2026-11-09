@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../core/api/api.config';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -22,7 +23,7 @@ describe('Ticket panels', () => {
 
   beforeEach(() => {
     sessionStorage.clear();
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({ providers: [{ provide: API_BASE_URL, useValue: 'http://localhost:5213/api' }, provideHttpClient(), provideHttpClientTesting()] });
   });
 
   afterEach(() => {

@@ -1,4 +1,4 @@
-<app-side-panel title="Nuevo ticket" subtitle="Reporta una incidencia para iniciar su atención." [busy]="busy()" (dismissed)="dismissed.emit()">
+<app-side-panel title="Nuevo ticket" subtitle="Reporta una incidencia para iniciar su atención." [pageMode]="standalone()" [busy]="busy()" (dismissed)="dismissed.emit()">
   <form (ngSubmit)="submit()" [formGroup]="form" [attr.aria-busy]="busy()">
     <div class="form-content">
       <div class="initial-state"><strong>Estado inicial: Pendiente</strong><p>El reportante no se asigna automáticamente al ticket.</p></div>

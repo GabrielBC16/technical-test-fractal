@@ -2,7 +2,7 @@
 <main id="main-content" class="board-content">
       <div class="page-heading">
         <div><h1>Tablero de tickets de mantenimiento</h1><p>Prioriza incidencias y acompaña cada ticket hasta su cierre.</p></div>
-        <button class="new-ticket" type="button" (click)="panel.set({ kind: 'create' })"><span aria-hidden="true">+</span> Nuevo ticket</button>
+        <button class="new-ticket" type="button" (click)="openCreate()"><span aria-hidden="true">+</span> Nuevo ticket</button>
       </div>
       <section class="summary-grid" aria-label="Resumen de tickets">
         @for (column of columns; track column.key) {
@@ -11,11 +11,16 @@
       </section>
       <section class="filters" aria-label="Filtros del tablero">
         <label class="search-control"><span aria-hidden="true">⌕</span><span class="visually-hidden">Buscar por título o ID</span><input type="search" placeholder="Buscar por título o ID..." [value]="search()" (input)="search.set($any($event.target).value)" /></label>
-        <label class="select-control"><span>Estado:</span><select aria-label="Estado del ticket" [value]="status()" (change)="status.set($any($event.target).value)"><option value="">Todos</option>@for (column of columns; track column.key) { <option [value]="column.status">{{ column.label }}</option> }</select></label>
+        <label class="select-control state-filter"><span>Estado:</span><select aria-label="Estado del ticket" [value]="status()" (change)="status.set($any($event.target).value)"><option value="">Todos</option>@for (column of columns; track column.key) { <option [value]="column.status">{{ column.label }}</option> }</select></label>
         <label class="select-control"><span>Asignado:</span><select aria-label="Usuario asignado" [value]="assignee()" (change)="assignee.set($any($event.target).value)"><option value="">Todos</option>@for (user of assignees(); track user.id) { <option [value]="user.id">{{ user.name }}</option> }</select></label>
         <button class="secondary-button" type="button" (click)="clearFilters()" [disabled]="!hasFilters()">Limpiar filtros</button>
         <button class="secondary-button refresh" type="button" (click)="store.refresh()" [disabled]="store.state().status === 'loading'">Actualizar</button>
       </section>
+      @if (viewport.isMobile()) {
+        <div class="mobile-status" role="group" aria-label="Estado del tablero">
+          @for (column of columns; track column.key) { <button type="button" [attr.aria-pressed]="(status() || 'Pending') === column.status" (click)="status.set(column.status)">{{ column.summary }}</button> }
+        </div>
+      }
       @switch (store.state().status) {
         @case ('loading') {
           <div class="feedback" role="status"><span class="loading-dot" aria-hidden="true"></span>Cargando tickets…</div>
@@ -48,8 +53,8 @@
 </app-desktop-shell>
 @if (panel(); as selected) {
   @if (selected.kind === 'create') {
-    <app-create-ticket (dismissed)="panel.set(null)" (created)="ticketCreated($event)" />
+    <app-create-ticket (dismissed)="closePanel()" (created)="ticketCreated($event)" />
   } @else {
-    <app-ticket-detail [ticketId]="selected.ticketId" (dismissed)="panel.set(null)" (changed)="store.refresh()" />
+    <app-ticket-detail [ticketId]="selected.ticketId" (dismissed)="closePanel()" (changed)="store.refresh()" />
   }
 }

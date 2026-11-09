@@ -6,6 +6,9 @@ import { TicketCard } from './ticket-card';
 import { CreateTicket } from '../tickets/create-ticket';
 import { TicketDetail } from '../tickets/ticket-detail';
 import { ToastService } from '../../core/notifications/toast.service';
+import { ViewportService } from '../../core/layout/viewport.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { linkedTicketId } from '../../core/tickets/ticket-presentation';
 
 const COLUMNS = [
   { key: 'pending', status: 'Pending', label: 'Pendiente', summary: 'Pendientes' },
@@ -21,12 +24,15 @@ const COLUMNS = [
   styleUrl: './board.css',
 })
 export class Board {
+  protected readonly viewport = inject(ViewportService);
+  private readonly router = inject(Router);
+  private readonly linkedId = linkedTicketId(inject(ActivatedRoute).snapshot.queryParamMap.get('ticket'));
   protected readonly store = inject(BoardStore);
   protected readonly columns = COLUMNS;
   protected readonly search = signal('');
   protected readonly status = signal('');
   protected readonly assignee = signal('');
-  protected readonly panel = signal<{ kind: 'create' } | { kind: 'detail'; ticketId: number } | null>(null);
+  protected readonly panel = signal<{ kind: 'create' } | { kind: 'detail'; ticketId: number } | null>(this.linkedId ? { kind: 'detail', ticketId: this.linkedId } : null);
   private readonly toast = inject(ToastService);
 
   protected readonly assignees = computed(() => {
@@ -43,7 +49,8 @@ export class Board {
   protected readonly visibleColumns = computed(() => {
     const board = this.store.board();
     const query = this.search().trim().toLocaleLowerCase('es').replace(/^#/, '');
-    return COLUMNS.filter(column => !this.status() || column.status === this.status()).map(column => ({
+    const selected = this.status() || (this.viewport.isMobile() ? 'Pending' : '');
+    return COLUMNS.filter(column => !selected || column.status === selected).map(column => ({
       ...column,
       tickets: (board?.[column.key] ?? []).filter(ticket => this.matches(ticket, query)),
     }));
@@ -70,6 +77,18 @@ export class Board {
     this.clearFilters();
     this.store.refresh();
     this.panel.set({ kind: 'detail', ticketId });
+  }
+
+  /** Keep desktop creation in a drawer and use a dedicated route on mobile. */
+  protected openCreate(): void {
+    if (this.viewport.isMobile()) void this.router.navigate(['/tickets/new'], { queryParams: { returnTo: 'board' } });
+    else this.panel.set({ kind: 'create' });
+  }
+
+  /** Remove a consumed mobile detail link when its panel closes. */
+  protected closePanel(): void {
+    this.panel.set(null);
+    if (this.linkedId) void this.router.navigate([], { queryParams: { ticket: null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
 }

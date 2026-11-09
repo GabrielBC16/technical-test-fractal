@@ -12,3 +12,12 @@ h2 { margin: 4px 0 8px; font-size: 24px; font-weight: 600; line-height: 1.2; }
 p { margin: 0; color: #5d6d85; font-size: 12px; line-height: 1.5; }
 .close-button { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border: 1px solid #d9dfe7; border-radius: 8px; background: white; font-size: 22px; }
 .close-button:disabled { opacity: .5; cursor: wait; }
+
+.page-panel { width: 100%; max-width: 640px; margin: 24px auto; padding: 28px 32px 0; border-radius: 12px; background: white; }
+.page-panel h1 { margin: 4px 0 8px; font-size: 24px; font-weight: 600; line-height: 1.2; }
+@media (max-width: 767px) {
+  dialog,dialog.wide { width: 100%; padding: 20px 16px 0; }
+  dialog.centered { width: calc(100% - 24px); max-height: calc(100dvh - 32px); padding: 20px 16px; border-radius: 12px; }
+  .panel-header { gap: 12px; margin-bottom: 24px; }
+  .page-panel { margin: 0; max-width: none; padding: 20px 16px 0; border-radius: 0; }
+}

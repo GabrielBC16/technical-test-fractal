@@ -9,6 +9,7 @@ import { initials } from '../core/tickets/ticket-presentation';
   imports: [RouterLink, RouterLinkActive],
   template: `
     <div class="desktop-shell">
+      <a class="skip-link" href="#main-content">Ir al contenido</a>
       <aside class="sidebar" aria-label="Navegación principal">
         <a class="brand" routerLink="/board" aria-label="Fractal, inicio">FRACTAL</a>
         <p class="sidebar-subtitle">Solicitudes y<br />Mantenimientos</p>

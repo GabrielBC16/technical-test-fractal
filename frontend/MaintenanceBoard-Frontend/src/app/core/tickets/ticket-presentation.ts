@@ -12,3 +12,10 @@ export function localTicketDate(value: string): string {
     hour: '2-digit', minute: '2-digit', hour12: false,
   }).format(date);
 }
+
+/** Accept only positive safe integer IDs from optional detail links. */
+export function linkedTicketId(value: string | null): number | null {
+  if (!value || !/^[1-9]\d*$/.test(value)) return null;
+  const id = Number(value);
+  return Number.isSafeInteger(id) ? id : null;
+}

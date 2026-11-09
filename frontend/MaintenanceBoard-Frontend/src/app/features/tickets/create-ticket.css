@@ -17,3 +17,10 @@ input[readonly] { background: #f5f6f8; color: #5d6d85; }
 .cancel-button,.create-button { padding: 13px 24px; border: 1px solid #d9dfe7; border-radius: 8px; background: white; font-size: 14px; font-weight: 600; }
 .create-button { flex: 1; border-color: #f5ab00; background: #f5ab00; }
 button:disabled { opacity: .6; cursor: wait; }
+
+@media (max-width: 767px) {
+  form { min-height: 0; }
+  input,textarea { font-size: 16px; }
+  .form-footer { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  .cancel-button,.create-button { padding: 13px 16px; min-height: 44px; }
+}

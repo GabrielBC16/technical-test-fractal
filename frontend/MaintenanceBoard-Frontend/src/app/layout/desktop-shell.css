@@ -1,5 +1,5 @@
 :host { display: block; font-size: 14px; color: #252d36; }
-.desktop-shell { display: flex; min-width: 1100px; min-height: 100vh; background: #f5f6f8; }
+.desktop-shell { display: flex; min-width: 0; min-height: 100vh; background: #f5f6f8; }
 .sidebar { display: flex; flex-direction: column; width: 200px; flex-shrink: 0; padding: 26px 24px 64px; background: white; }
 .brand { color: #087395; font-size: 24px; font-weight: 700; text-decoration: none; }
 .sidebar-subtitle { margin: 28px 0 24px; padding-bottom: 24px; border-bottom: 1px solid #d9dfe7; color: #5d6d85; font-size: 12px; line-height: 1.5; font-weight: 600; }
@@ -19,3 +19,25 @@
 .account-name { color: #252d36; font-weight: 600; }
 .account-role { font-size: 12px; padding-top: 3px; }
 .logout { margin-left: 14px; border: 0; background: transparent; color: #536176; font-size: 12px; text-decoration: underline; }
+
+.skip-link { position: absolute; top: -80px; left: 12px; z-index: 2000; padding: 12px; background: white; color: #006b90; }
+.skip-link:focus { top: 8px; }
+@media (max-width: 1023px) {
+  .desktop-shell { flex-direction: column; }
+  .sidebar { width: auto; padding: 16px 20px; }
+  .sidebar-subtitle,.workspace-label,.sidebar-description,.sidebar-note { display: none; }
+  .sidebar nav { display: flex; gap: 12px; margin-top: 14px; }
+  .nav-link { margin: 0; padding: 10px 12px; min-height: 44px; }
+  .topbar { height: auto; min-height: 64px; padding: 12px 20px; }
+}
+@media (max-width: 767px) {
+  .sidebar { padding: 16px; }
+  .sidebar nav { gap: 8px; }
+  .nav-link { flex: 1; font-size: 12px; gap: 8px; }
+  .topbar { padding: 8px 16px; border-top: 1px solid #e9edf2; }
+  .topbar > p { display: none; }
+  .account { width: 100%; gap: 8px; }
+  .account > div { min-width: 0; flex: 1; }
+  .account-name { overflow-wrap: anywhere; }
+  .logout { margin-left: auto; min-height: 44px; padding: 8px; }
+}

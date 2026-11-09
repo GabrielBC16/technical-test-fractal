@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../core/api/api.config';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -20,7 +21,7 @@ describe('Desktop board', () => {
       userId: 1, userName: 'gbarrantes', names: 'Gabriel', lastNames: 'Barrantes', role: 'Requester',
     }));
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), provideHttpClient(withInterceptors([sessionInterceptor])), provideHttpClientTesting()],
+      providers: [{ provide: API_BASE_URL, useValue: 'http://localhost:5213/api' }, provideRouter([]), provideHttpClient(withInterceptors([sessionInterceptor])), provideHttpClientTesting()],
     });
   });
 
