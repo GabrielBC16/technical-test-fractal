@@ -81,7 +81,7 @@ The desktop shell follows the exported board layout, adapted to three backend gr
 - Assignee options come from board assignments, so Requesters do not call the restricted users endpoint.
 - Real assignee initials, additional assignee counts, and browser-local creation dates are displayed.
 - Loading, empty, no-match, and Spanish error states are included.
-- New-ticket creation is disabled until milestone 3. Cards remain read-only until ticket details are implemented.
+- New-ticket creation opens a desktop side panel; ticket titles open their details and activity history.
 - Date-range filtering, rejected-ticket listing, and responsive behavior remain in later milestones.
 - Demo ticket titles and descriptions remain exactly as returned by the API, including English seed content.
 
@@ -102,3 +102,34 @@ The desktop shell follows the exported board layout, adapted to three backend gr
 - Desktop output was visually reviewed against the owner-approved exported board reference.
 - The API seed reported 0 new users and 0 new tickets. No ticket mutations were performed.
 - The owner's login HTML and all pre-existing backend/database changes were preserved and excluded from this milestone commit.
+
+## Ticket creation and detail
+
+The create panel posts only `title` and `description` to `POST /api/tickets`.
+Required text is trimmed and limited to 200 and 4000 characters respectively, matching the API request body.
+Reporter identity comes from the authenticated header. The API creates the initial Pending status.
+Optional assignment in the reference is intentionally deferred to the separate assignments endpoint in milestone 4.
+Input remains available after errors; duplicate submissions and closing during an active create request are prevented.
+After HTTP 201, the returned ticket ID opens its detail and the board is refreshed with local filters cleared.
+
+Ticket titles are keyboard-accessible buttons. The detail panel fetches `GET /api/tickets/{id}`
+and displays reporter, status, description, cause, all assignees, justifications, and history.
+History is shown newest first without changing the API response. Event and status labels are in Spanish.
+Cause and activity remain read-only here; assignments, transitions, and posting comments belong to milestone 4.
+Detail reads are canceled on selection change or component destruction; failed reads can be retried.
+
+The reusable side panel uses native `dialog.showModal()` for focus isolation and Escape behavior.
+It closes on the close button or Escape and restores native focus behavior. Creation blocks both while submitting.
+The create and detail layouts follow the exported PDFs approved by the owner; responsive behavior remains deferred.
+
+## Milestone 3 validation
+
+- Production build passed within the configured budgets.
+- All 12 basic tests passed across 4 test files.
+- Added checks for required fields, exact create payload, duplicate-submit prevention, create errors,
+  detail retry, cause, terminal state, and newest-first history.
+- JSDOM does not implement native dialog methods; panel tests stub those methods only.
+- Permission to start the local API for the browser smoke check was declined.
+  No live create request or browser review of this milestone's panels was performed.
+- The owner's login HTML, ticket-card CSS, and pre-existing backend/database changes were preserved
+  and excluded from the milestone commit.

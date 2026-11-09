@@ -1,0 +1,25 @@
+.ticket-title { margin: 0 0 24px; font-size: 24px; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.ticket-meta { display: flex; align-items: center; gap: 16px; color: #5d6d85; font-size: 12px; }
+.status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 7px 18px; border-radius: 99px; background: #e8ecf1; color: #536176; font-size: 12px; font-weight: 600; }
+.status-badge[data-status="InProgress"] { background: #fff0c9; color: #925800; }
+.status-badge[data-status="Closed"] { background: #e3f5ec; color: #176949; }
+.status-badge[data-status="Rejected"] { background: #fbe9ed; color: #b4233e; }
+.description { margin: 28px 0 24px; color: #5d6d85; font-size: 14px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.detail-columns { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; padding: 26px 0 32px; border-top: 1px solid #d9dfe7; }
+h4 { margin: 0 0 18px; font-size: 16px; font-weight: 600; }
+h5 { margin: 22px 0 10px; font-size: 12px; font-weight: 600; }
+.cause { margin: 0; padding: 22px 12px; border: 1px solid #d9dfe7; border-radius: 8px; color: #5d6d85; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.helper { margin: 8px 0 12px; color: #5d6d85; font-size: 12px; line-height: 1.5; }
+.assignees { display: flex; flex-wrap: wrap; gap: 12px; }
+.assignee { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.avatar { display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: #e5f3fa; color: #006b90; font-weight: 600; }
+.justification { margin-top: 12px; color: #5d6d85; font-size: 12px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.terminal-note { margin-top: 32px; color: #5d6d85; font-size: 14px; }
+.history { display: grid; gap: 12px; padding: 0; margin: 0; list-style: none; }
+.history li { padding: 14px 12px; border-radius: 8px; background: #f5f6f8; font-size: 12px; overflow-wrap: anywhere; }
+.history h5 { margin: 0 0 8px; }
+.history p { margin: 6px 0 0; color: #5d6d85; line-height: 1.5; }
+.event-comment { white-space: pre-wrap; }
+.feedback { display: flex; min-height: 300px; flex-direction: column; justify-content: center; align-items: center; gap: 16px; padding: 24px; color: #5d6d85; text-align: center; }
+.feedback h3,.feedback p { margin: 0; }
+.retry-button { padding: 12px 24px; border: 1px solid #d9dfe7; border-radius: 8px; background: white; color: #252d36; }

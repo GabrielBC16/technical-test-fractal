@@ -3,6 +3,8 @@ import { DesktopShell } from '../../layout/desktop-shell';
 import { TicketListItem } from '../../core/tickets/ticket.models';
 import { BoardStore } from './board.store';
 import { TicketCard } from './ticket-card';
+import { CreateTicket } from '../tickets/create-ticket';
+import { TicketDetail } from '../tickets/ticket-detail';
 
 const COLUMNS = [
   { key: 'pending', status: 'Pending', label: 'Pendiente', summary: 'Pendientes' },
@@ -12,7 +14,7 @@ const COLUMNS = [
 
 @Component({
   selector: 'app-board',
-  imports: [DesktopShell, TicketCard],
+  imports: [DesktopShell, TicketCard, CreateTicket, TicketDetail],
   providers: [BoardStore],
   templateUrl: './board.html',
   styleUrl: './board.css',
@@ -23,6 +25,8 @@ export class Board {
   protected readonly search = signal('');
   protected readonly status = signal('');
   protected readonly assignee = signal('');
+  protected readonly panel = signal<{ kind: 'create' } | { kind: 'detail'; ticketId: number } | null>(null);
+  protected readonly notice = signal('');
 
   protected readonly assignees = computed(() => {
     const board = this.store.board();
@@ -57,6 +61,14 @@ export class Board {
     this.search.set('');
     this.status.set('');
     this.assignee.set('');
+  }
+
+  /** Display the new server ticket and refresh the authoritative board after creation. */
+  protected ticketCreated(ticketId: number): void {
+    this.notice.set(`Ticket #${ticketId} creado correctamente.`);
+    this.clearFilters();
+    this.store.refresh();
+    this.panel.set({ kind: 'detail', ticketId });
   }
 
 }

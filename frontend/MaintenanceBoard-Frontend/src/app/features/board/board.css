@@ -2,7 +2,7 @@
 .page-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 20px; }
 h1 { margin: 0; font-size: 28px; font-weight: 600; line-height: 1.25; letter-spacing: -.5px; }
 .page-heading p { margin: 10px 0 0; color: #5d6d85; font-size: 13px; }
-.new-ticket { flex-shrink: 0; width: 192px; padding: 14px 20px; border: 0; border-radius: 9px; background: #f5ab00; color: #252d36; font-weight: 600; cursor: not-allowed; }
+.new-ticket { flex-shrink: 0; width: 192px; padding: 14px 20px; border: 0; border-radius: 9px; background: #f5ab00; color: #252d36; font-weight: 600; cursor: pointer; }
 .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .summary-card { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid #d9dfe7; border-radius: 12px; background: white; }
 .summary-number { padding: 6px 8px; border-radius: 8px; background: #e8ecf1; color: #536176; font-size: 24px; line-height: 1.2; font-weight: 600; }

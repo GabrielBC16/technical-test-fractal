@@ -1,0 +1,19 @@
+form { display: flex; flex-direction: column; min-height: calc(100dvh - 120px); }
+.form-content { flex: 1; }
+.initial-state { padding: 16px 12px; margin-bottom: 24px; border-radius: 8px; background: #e5f3fa; color: #006b90; font-size: 14px; }
+.initial-state p { margin: 8px 0 0; font-size: 12px; }
+.form-field { margin-bottom: 24px; }
+label { display: block; margin-bottom: 10px; color: #252d36; font-size: 12px; font-weight: 600; }
+input,textarea { display: block; width: 100%; padding: 14px 12px; border: 1px solid #d9dfe7; border-radius: 8px; background: white; font: inherit; font-size: 14px; color: #252d36; }
+textarea { min-height: 96px; resize: vertical; }
+input::placeholder,textarea::placeholder { color: #5d6d85; }
+input[readonly] { background: #f5f6f8; color: #5d6d85; }
+[aria-invalid="true"] { border-color: #b4233e; }
+.field-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; color: #5d6d85; font-size: 11px; }
+.field-error { margin: 0; color: #a82039; }
+.assignment-note { margin: 0 0 24px; color: #5d6d85; font-size: 12px; line-height: 1.5; }
+.error-message { padding: 12px; border-radius: 8px; background: #fff0f2; color: #a82039; font-size: 13px; }
+.form-footer { display: flex; gap: 12px; position: sticky; bottom: 0; padding: 20px 0 12px; background: white; }
+.cancel-button,.create-button { padding: 13px 24px; border: 1px solid #d9dfe7; border-radius: 8px; background: white; font-size: 14px; font-weight: 600; }
+.create-button { flex: 1; border-color: #f5ab00; background: #f5ab00; }
+button:disabled { opacity: .6; cursor: wait; }

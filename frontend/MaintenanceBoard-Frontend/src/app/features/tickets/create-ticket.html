@@ -1,0 +1,23 @@
+<app-side-panel title="Nuevo ticket" subtitle="Reporta una incidencia para iniciar su atención." [busy]="busy()" (dismissed)="dismissed.emit()">
+  <form (ngSubmit)="submit()" [formGroup]="form" [attr.aria-busy]="busy()">
+    <div class="form-content">
+      <div class="initial-state"><strong>Estado inicial: Pendiente</strong><p>El reportante no se asigna automáticamente al ticket.</p></div>
+      <div class="form-field">
+        <label for="ticket-title">Título <span aria-hidden="true">*</span></label>
+        <input id="ticket-title" formControlName="title" placeholder="Ej. Cajero fuera de servicio" maxlength="200" required autofocus
+          [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid" aria-describedby="title-error title-count" />
+        <div class="field-meta"><p id="title-error" class="field-error">@if (form.controls.title.touched && form.controls.title.invalid) { Ingresa un título de hasta 200 caracteres. }</p><span id="title-count">{{ form.controls.title.value.length }}/200</span></div>
+      </div>
+      <div class="form-field">
+        <label for="ticket-description">Descripción <span aria-hidden="true">*</span></label>
+        <textarea id="ticket-description" formControlName="description" placeholder="Describe qué ocurre y dónde sucede..." maxlength="4000" required rows="5"
+          [attr.aria-invalid]="form.controls.description.touched && form.controls.description.invalid" aria-describedby="description-error description-count"></textarea>
+        <div class="field-meta"><p id="description-error" class="field-error">@if (form.controls.description.touched && form.controls.description.invalid) { Describe el problema (máximo 4000 caracteres). }</p><span id="description-count">{{ form.controls.description.value.length }}/4000</span></div>
+      </div>
+      <div class="form-field"><label for="ticket-reporter">Reportado por</label><input id="ticket-reporter" [value]="(session.user()?.names ?? '') + ' ' + (session.user()?.lastNames ?? '') + ' · Usuario actual'" readonly /></div>
+      <p class="assignment-note">Los operadores se asignan después de crear el ticket.</p>
+      @if (error()) { <p class="error-message" role="alert">{{ error() }}</p> }
+    </div>
+    <footer class="form-footer"><button class="cancel-button" type="button" (click)="dismissed.emit()" [disabled]="busy()">Cancelar</button><button class="create-button" type="submit" [disabled]="busy()">{{ busy() ? 'Creando…' : 'Crear ticket' }}</button></footer>
+  </form>
+</app-side-panel>

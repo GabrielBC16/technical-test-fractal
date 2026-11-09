@@ -2,8 +2,9 @@
 <main id="main-content" class="board-content">
       <div class="page-heading">
         <div><h1>Tablero de tickets de mantenimiento</h1><p>Prioriza incidencias y acompaña cada ticket hasta su cierre.</p></div>
-        <button class="new-ticket" type="button" disabled title="Próximamente"><span aria-hidden="true">+</span> Nuevo ticket</button>
+        <button class="new-ticket" type="button" (click)="notice.set(''); panel.set({ kind: 'create' })"><span aria-hidden="true">+</span> Nuevo ticket</button>
       </div>
+      @if (notice()) { <p class="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{{ notice() }}</p> }
       <section class="summary-grid" aria-label="Resumen de tickets">
         @for (column of columns; track column.key) {
           <div class="summary-card"><span class="summary-number" [attr.data-status]="column.status">{{ store.board() ? (store.board()![column.key].length < 10 ? '0' : '') + store.board()![column.key].length : '—' }}</span><span>{{ column.summary }}</span></div>
@@ -35,7 +36,7 @@
                 <section class="kanban-column" [attr.aria-labelledby]="'column-' + column.key">
                   <header class="column-heading"><h2 [id]="'column-' + column.key" class="status-badge" [attr.data-status]="column.status"><span aria-hidden="true">●</span>{{ column.label }}</h2><span class="column-count">{{ column.tickets.length }}</span></header>
                   <div class="ticket-stack">
-                    @for (ticket of column.tickets; track ticket.ticketId) { <app-ticket-card [ticket]="ticket" /> }
+                    @for (ticket of column.tickets; track ticket.ticketId) { <app-ticket-card [ticket]="ticket" (opened)="panel.set({ kind: 'detail', ticketId: $event })" /> }
                     @empty { <p class="empty-column">No hay tickets en este estado.</p> }
                   </div>
                 </section>
@@ -46,3 +47,10 @@
       }
     </main>
 </app-desktop-shell>
+@if (panel(); as selected) {
+  @if (selected.kind === 'create') {
+    <app-create-ticket (dismissed)="panel.set(null)" (created)="ticketCreated($event)" />
+  } @else {
+    <app-ticket-detail [ticketId]="selected.ticketId" (dismissed)="panel.set(null)" />
+  }
+}

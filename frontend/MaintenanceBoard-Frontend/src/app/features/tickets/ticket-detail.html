@@ -1,0 +1,44 @@
+<app-side-panel [title]="'Ticket #' + ticketId()" [subtitle]="details() ? 'Creado el ' + localDate(details()!.ticket.createdAtUtc) : 'Detalle del ticket'" [wide]="true" (dismissed)="dismissed.emit()">
+  @if (loading()) {
+    <div class="feedback" role="status">Cargando detalle del ticket…</div>
+  } @else if (error()) {
+    <div class="feedback" role="alert"><h3>No se pudo cargar el ticket</h3><p>{{ error() }}</p><button type="button" class="retry-button" (click)="load()">Reintentar</button></div>
+  } @else if (details(); as data) {
+    <section aria-labelledby="detail-title">
+      <h3 id="detail-title" class="ticket-title">{{ data.ticket.title }}</h3>
+      <div class="ticket-meta"><span class="status-badge" [attr.data-status]="data.ticket.status"><span aria-hidden="true">●</span>{{ labels[data.ticket.status] }}</span><span>Reportado por {{ data.ticket.reportedByDisplayName }}</span></div>
+      <p class="description">{{ data.ticket.description }}</p>
+      <div class="detail-columns">
+        <section aria-labelledby="attention-title">
+          <h4 id="attention-title">Atención del ticket</h4>
+          <h5>Causa del problema</h5>
+          <p class="cause">{{ data.cause || 'Pendiente de identificar durante la atención.' }}</p>
+          @if (!data.cause) { <p class="helper">Obligatoria antes de cerrar el ticket.</p> }
+          <h5>Operadores asignados</h5>
+          <div class="assignees">
+            @for (user of data.ticket.assignees; track user.userId) {
+              <div class="assignee"><span class="avatar" aria-hidden="true">{{ getInitials(user.names + ' ' + user.lastNames) }}</span><span>{{ user.names }} {{ user.lastNames }}</span></div>
+            } @empty { <p class="helper">Sin asignar</p> }
+          </div>
+          @for (user of data.ticket.assignees; track user.userId) {
+            @if (user.justification) { <p class="justification"><strong>{{ user.names }} {{ user.lastNames }}:</strong> {{ user.justification }}</p> }
+          }
+          @if (data.ticket.status === 'Closed' || data.ticket.status === 'Rejected') { <p class="terminal-note">Este ticket está finalizado.</p> }
+        </section>
+        <section aria-labelledby="history-title">
+          <h4 id="history-title">Historial de actividad</h4><p class="helper">Eventos y comentarios del ticket</p>
+          <ol class="history">
+            @for (event of history(); track event.historyId) {
+              <li><h5>{{ eventTitle(event) }}</h5><p>{{ event.actorDisplayName }} · <time [attr.datetime]="event.createdAtUtc">{{ localDate(event.createdAtUtc) }}</time></p>
+                @if (event.relatedUserDisplayName) { <p>{{ event.relatedUserDisplayName }}</p> }
+                @if (event.previousStatus && event.newStatus) { <p>{{ labels[event.previousStatus] }} → {{ labels[event.newStatus] }}</p> }
+                @else if (event.newStatus) { <p>Estado inicial: {{ labels[event.newStatus] }}</p> }
+                @if (event.comment) { <p class="event-comment">{{ event.comment }}</p> }
+              </li>
+            } @empty { <li class="helper">No hay eventos registrados.</li> }
+          </ol>
+        </section>
+      </div>
+    </section>
+  }
+</app-side-panel>

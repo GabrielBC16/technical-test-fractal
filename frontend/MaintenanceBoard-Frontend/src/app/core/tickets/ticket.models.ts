@@ -34,3 +34,33 @@ export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
   Closed: 'Cerrado',
   Rejected: 'Rechazado',
 };
+
+export interface CreateTicketRequest {
+  title: string;
+  description: string;
+}
+
+export interface CreatedTicketResponse {
+  ticketId: number;
+}
+
+export type TicketEventType = 'Created' | 'StatusChanged' | 'Assigned' | 'Comment';
+
+export interface TicketHistoryItem {
+  historyId: number;
+  actorUserId: number;
+  actorDisplayName: string;
+  relatedUserId: number | null;
+  relatedUserDisplayName: string | null;
+  eventType: TicketEventType;
+  previousStatus: TicketStatus | null;
+  newStatus: TicketStatus | null;
+  comment: string | null;
+  createdAtUtc: string;
+}
+
+export interface TicketDetails {
+  ticket: TicketListItem;
+  cause: string | null;
+  history: TicketHistoryItem[];
+}
